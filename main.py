@@ -19,7 +19,7 @@ def draw_graph(G):
 
 def main():
     parser = argparse.ArgumentParser(description="Visualizar molécula desde archivo SDF.")
-    parser.add_argument("filename", help="Nombre del archivo SDF (sin la ruta)")
+    parser.add_argument("filename", nargs='?', default="5RFA_ligand.sdf", help="Nombre del archivo SDF")
     args = parser.parse_args()
 
     file_path = os.path.join("data", args.filename)
