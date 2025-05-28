@@ -1,0 +1,13 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Python: main",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/main.py",
+      "args": ["5RFA_ligand.sdf"],  // ← Cambia esto al archivo que quieras
+      "console": "integratedTerminal"
+    }
+  ]
+}
