@@ -38,7 +38,7 @@ app.layout = html.Div([
             'idealEdgeLength': 10,     # Distancia "ideal" entre nodos conectados
             'nodeRepulsion': 400000,    # Fuerza de repulsión entre nodos
             'edgeElasticity': 5,      # Qué tan elástica es la arista (fuerza)
-            'gravity': 150,              # Atracción general hacia el centro
+            'gravity': 100,              # Atracción general hacia el centro
             'numIter': 1000,            # Cuántas iteraciones ejecutar (más = más estable)
             'fit': True,                # Ajusta el grafo al contenedor
             'padding': 30               # Margen desde los bordes
