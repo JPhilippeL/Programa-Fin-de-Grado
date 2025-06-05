@@ -15,7 +15,7 @@ def parse_sdf(file_path):
     for atom in mol.GetAtoms():
         idx = atom.GetIdx()
         pos = mol.GetConformer().GetAtomPosition(idx)
-        graph.add_node(idx, 
+        graph.add_node(str(idx), 
                        element=atom.GetSymbol(), 
                        x=pos.x, y=pos.y, z=pos.z)
 
@@ -23,6 +23,6 @@ def parse_sdf(file_path):
         start = bond.GetBeginAtomIdx()
         end = bond.GetEndAtomIdx()
         bond_type = bond.GetBondType()
-        graph.add_edge(start, end, bond_type=str(bond_type))
+        graph.add_edge(str(start), str(end), bond_type=str(bond_type))
 
     return graph
