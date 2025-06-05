@@ -1,60 +1,113 @@
-import matplotlib.pyplot as plt
-from matplotlib import collections as mc
-import networkx as nx
-from networkx.drawing.nx_agraph import graphviz_layout
+#graph_drawer.py
+# Convertir un grafo de NetworkX a formato Cytoscape para visualización
+import utils
 
-def draw_graph_with_pygraphviz(G, prog='neato'):
-    """
-    Dibuja el grafo G usando PyGraphviz para calcular el layout.
-    `prog` puede ser: 'dot', 'neato', 'fdp', 'circo', 'twopi'...
-    """
-    pos = graphviz_layout(G, prog=prog)
+# === Convierte a formato Cytoscape ===
+def nx_to_cytoscape(G):
+    nodes = [
+        {'data': {'id': str(n), 'label': G.nodes[n].get('element', str(n))}}
+        for n in G.nodes
+    ]
+    edges = [
+        {
+            'data': {
+                'source': str(u),
+                'target': str(v),
+                'bond_type': str(G.edges[u, v].get('bond_type', '')).upper(),  # FORZAR MAYÚSCULAS
+                'label': G.edges[u, v].get('bond_type', '')
+            }
+        }
+        for u, v in G.edges
+    ]
+    return nodes + edges
 
-    draw_bonds(G, pos)  # Asumiendo que tu función personalizada usa pos igual que nx
+def graph_to_cytoscape_elements(G):
+    elements = []
+    for node, data in G.nodes(data=True):
+        element = data['element']
+        color = utils.ATOM_COLORS.get(element, utils.ATOM_COLORS_DEFAULT)
+        text_color = utils.ATOM_TEXT_COLORS.get(element, utils.ATOM_TEXT_COLORS_DEFAULT)  # negro por defecto si no existe
+        elements.append({
+            'data': {
+                'id': str(node),
+                'label': element,
+                'color': color,
+                'text_color': text_color
+            }
+        })
+    for u, v, data in G.edges(data=True):
+        elements.append({
+            'data': {
+                'source': str(u),
+                'target': str(v),
+                'bond_type': data.get('bond_type', 'SINGLE')
+            }
+        })
+    return elements
 
-    nx.draw_networkx_nodes(G, pos, node_color='lightgreen', node_size=225)
-    nx.draw_networkx_labels(G, pos, labels={n: G.nodes[n].get('element', str(n)) for n in G.nodes})
 
-    plt.axis("equal")
-    plt.title(f"Grafo molecular con layout '{prog}' de Graphviz")
-    plt.show()
-
-def draw_bonds(G, pos):
-    lines = []
-    styles = []
-
-    for u, v in G.edges():
-        bond_type = G[u][v]['bond_type']
-        x1, y1 = pos[u]
-        x2, y2 = pos[v]
-
-        if bond_type == "SINGLE":
-            lines.append([(x1, y1), (x2, y2)])
-            styles.append(('solid', 1.5))
-
-        elif bond_type == "DOUBLE":
-            offset = 4
-            dx, dy = y2 - y1, x1 - x2
-            norm = (dx**2 + dy**2)**0.5 or 1e-6
-            dx, dy = dx / norm * offset, dy / norm * offset
-            lines.append([(x1 + dx, y1 + dy), (x2 + dx, y2 + dy)])
-            lines.append([(x1 - dx, y1 - dy), (x2 - dx, y2 - dy)])
-            styles.extend([('solid', 1.5)] * 2)
-
-        elif bond_type == "TRIPLE":
-            offset = 4
-            dx, dy = y2 - y1, x1 - x2
-            norm = (dx**2 + dy**2)**0.5 or 1e-6
-            dx, dy = dx / norm * offset, dy / norm * offset
-            lines.append([(x1, y1), (x2, y2)])
-            lines.append([(x1 + dx, y1 + dy), (x2 + dx, y2 + dy)])
-            lines.append([(x1 - dx, y1 - dy), (x2 - dx, y2 - dy)])
-            styles.extend([('solid', 1.5)] * 3)
-
-        else:  # Por ejemplo, aromático o desconocido
-            lines.append([(x1, y1), (x2, y2)])
-            styles.append(('dotted', 1.0))
-
-    for line, (style, width) in zip(lines, styles):
-        lc = mc.LineCollection([line], linestyles=style, linewidths=width, colors='black')
-        plt.gca().add_collection(lc)
+def get_stylesheet():
+    stylesheet = [
+    {
+        'selector': 'node',
+        'style': {
+            'content': 'data(label)',
+            'background-color':'data(color)',   # verde más oscuro y vibrante
+            'color': 'data(text_color)',                 # color del texto claro
+            'font-size': '14px',
+            'text-valign': 'center',
+            'text-halign': 'center',
+            'width': 30,
+            'height': 30
+        }
+    },
+    {
+        'selector': 'edge',
+        'style': {
+            'curve-style': 'bezier',
+            'line-color': '#E9ECF5',            # gris medio para enlaces por defecto
+            'width': 2,
+            'target-arrow-shape': 'none',
+        }
+    },
+    # SINGLE
+    {
+        'selector': '[bond_type = "SINGLE"]',
+        'style': {
+            'line-style': 'solid',
+            'width': 2
+        }
+    },
+    # DOUBLE
+    {
+        'selector': '[bond_type = "DOUBLE"]',
+        'style': {
+            'line-style': 'solid',
+            'width': 5
+        }
+    },
+    # TRIPLE
+    {
+        'selector': '[bond_type = "TRIPLE"]',
+        'style': {
+            'line-style': 'solid',
+            'width': 7
+        }
+    },
+    # AROMATIC or unknown
+    {
+        'selector': '[bond_type = "AROMATIC"]',
+        'style': {
+            'line-style': 'dashed',
+            'width': 2
+        }
+    },
+    # Texto de nodos en tema oscuro
+    {
+        'selector': 'node > text',
+        'style': {
+            'color': '#eee'
+        }
+    }
+]
+    return stylesheet

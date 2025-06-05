@@ -1,4 +1,5 @@
 # sdf_parser.py
+# Leer/Guardar archivos SDF y convertirlos a un grafo de NetworkX
 
 from rdkit import Chem
 import networkx as nx
