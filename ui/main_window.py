@@ -9,7 +9,7 @@ class MainWindow(QMainWindow):
         self.resize(800, 600)
 
         # cargar sdf y grafo
-        graph = parse_sdf("data/5RFA_ligand.sdf")
+        graph = parse_sdf("data/5RHD_ligand.sdf")
 
         # crear y mostrar grafo
         self.graph_view = MoleculeGraphView(graph)
