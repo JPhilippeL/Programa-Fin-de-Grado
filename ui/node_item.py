@@ -1,15 +1,20 @@
 from PySide6.QtWidgets import QGraphicsEllipseItem, QGraphicsTextItem, QGraphicsItem, QMenu
 from PySide6.QtGui import QBrush, QColor, QFont
-from PySide6.QtCore import Signal, QObject
+from PySide6.QtCore import Signal, QObject, Qt
 from ui.utils import ATOM_COLORS, ATOM_TEXT_COLORS, ATOM_COLORS_DEFAULT, ATOM_TEXT_COLORS_DEFAULT
 
 NODE_RADIUS = 20
 
 class NodeItem(QGraphicsEllipseItem, QObject):
+    modify_requested = Signal(object)  # self
+    delete_requested = Signal(object)  # self
+    add_edge_requested = Signal(object)  # self
+    
     def __init__(self, x, y, radius, element, node_id):
-        super().__init__(-radius, -radius, 2 * radius, 2 * radius)
+        QObject.__init__(self)
+        QGraphicsEllipseItem.__init__(self, -radius, -radius, 2 * radius, 2 * radius)
         
-         # Estilo según el elemento
+        # Estilo según el elemento
         color = QColor(ATOM_COLORS.get(element, ATOM_COLORS_DEFAULT))
         text_color = QColor(ATOM_TEXT_COLORS.get(element, ATOM_TEXT_COLORS_DEFAULT))
 
@@ -30,6 +35,7 @@ class NodeItem(QGraphicsEllipseItem, QObject):
         # Calcular centro del nodo y ajustar el texto
         text_rect = self.label.boundingRect()
         self.label.setPos(-text_rect.width() / 2, -text_rect.height() / 2)
+        self.label.setAcceptedMouseButtons(Qt.NoButton)  # No permitir interacción directa con el texto
 
         # Lista de conexiones (enlaces)
         self.edges = []
@@ -43,10 +49,22 @@ class NodeItem(QGraphicsEllipseItem, QObject):
                 edge.update_position()
         return super().itemChange(change, value)
     
-    modify_requested = Signal(object)  # self
-    delete_requested = Signal(object)  # self
-    add_edge_requested = Signal(object)  # self
+    def update_element(self, new_element):
+        self.element = new_element
 
+        # Actualizar color de fondo y texto
+        color = QColor(ATOM_COLORS.get(new_element, ATOM_COLORS_DEFAULT))
+        text_color = QColor(ATOM_TEXT_COLORS.get(new_element, ATOM_TEXT_COLORS_DEFAULT))
+        self.setBrush(QBrush(color))
+        self.label.setDefaultTextColor(text_color)
+
+        # Actualizar el texto del nodo
+        self.label.setPlainText(new_element)
+
+        # Reajustar posición del texto centrado
+        text_rect = self.label.boundingRect()
+        self.label.setPos(-text_rect.width() / 2, -text_rect.height() / 2)
+    
     def contextMenuEvent(self, event):
         menu = QMenu()
         modify_action = menu.addAction("Modificar nodo")
