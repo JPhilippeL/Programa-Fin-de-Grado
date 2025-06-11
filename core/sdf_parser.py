@@ -3,6 +3,7 @@
 
 import base64
 from rdkit import Chem
+from rdkit.Chem import AllChem
 import networkx as nx
 
 def parse_sdf(file_path):
@@ -12,14 +13,15 @@ def parse_sdf(file_path):
     if mol is None:
         raise ValueError("No se pudo leer una molécula válida desde el archivo SDF.")
 
+    AllChem.Compute2DCoords(mol)  # asegura posiciones 2D
     graph = nx.Graph()
 
     for atom in mol.GetAtoms():
         idx = atom.GetIdx()
         pos = mol.GetConformer().GetAtomPosition(idx)
         graph.add_node(str(idx), 
-                       element=atom.GetSymbol(), 
-                       x=pos.x, y=pos.y, z=pos.z)
+               element=atom.GetSymbol(), 
+               pos=(pos.x * 50, -pos.y * 50))  # escalar y reflejar eje Y si lo deseas
 
     for bond in mol.GetBonds():
         start = bond.GetBeginAtomIdx()

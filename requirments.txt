@@ -1,4 +1,3 @@
 rdkit
 networkX
-pygraphviz
-dash
+PySide6

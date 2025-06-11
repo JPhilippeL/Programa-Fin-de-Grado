@@ -1,6 +1,6 @@
 ATOM_COLORS_DEFAULT = "#909090"  # Gris medio por defecto
 ATOM_TEXT_COLORS_DEFAULT = "#FFFFFF"
-BACKGROUND_COLOR = "#232F2E"  # Color de fondo claro
+BACKGROUND_COLOR = "#232F2E"  # Color de fondo
 ATOM_COLORS = {
     "C":  "#909090",  # Gris medio para Carbono
     "H":  "#FFFFFF",  # Blanco para Hidrógeno
