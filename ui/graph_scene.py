@@ -1,10 +1,11 @@
 from PySide6.QtWidgets import QGraphicsScene, QInputDialog, QMessageBox, QGraphicsLineItem
 from PySide6.QtGui import QColor, QPen, Qt, QTransform
-from PySide6.QtCore import Signal, QObject
+from PySide6.QtCore import QPointF
 from ui.utils import BACKGROUND_COLOR
 from ui.edge_item import EdgeItem
 from ui.node_item import NodeItem
 from core.graph_manager import GraphManager
+import uuid
 
 class MoleculeGraphScene(QGraphicsScene):
 
@@ -28,12 +29,7 @@ class MoleculeGraphScene(QGraphicsScene):
             node_id = data.get("idx", node_id)
             node = NodeItem(x, y, 20, element, node_id)
 
-            node.modify_requested.connect(self.on_modify_node)
-            node.delete_requested.connect(self.on_delete_node)
-            node.add_edge_requested.connect(self.start_temporary_edge)
-
-            self.addItem(node)
-            self.node_items[node_id] = node
+            self.add_node(node)
 
         # Crear enlaces
         for source_id, target_id, data in self.graph.edges(data=True):
@@ -41,12 +37,31 @@ class MoleculeGraphScene(QGraphicsScene):
             source_node = self.node_items[source_id]
             target_node = self.node_items[target_id]
             edge = EdgeItem(source_node, target_node, bond_type)
-            self.addItem(edge)
+
+            self.add_edge(edge)
+
+    def add_node(self, node):
+        node.modify_node_requested.connect(self.on_modify_node)
+        node.delete_node_requested.connect(self.on_delete_node)
+        node.add_edge_requested.connect(self.start_temporary_edge)
+        id = node.get_id()
+
+        self.addItem(node)
+        self.node_items[id] = node
+
+    def add_edge(self, edge):
+        edge.modify_edge_requested.connect(self.on_modify_edge)
+        edge.delete_edge_requested.connect(self.on_delete_edge)
+        edge.add_node_requested.connect(self.on_add_node_to_edge)
+
+        self.addItem(edge)
+        
 
     def on_modify_node(self, node_item):
         node_id = self._get_node_id_from_item(node_item)
         new_element, ok = QInputDialog.getText(None, "Modificar nodo", "Nuevo símbolo químico:")
         if ok and new_element:
+            new_element = new_element.strip().upper()
             GraphManager.modify_node(self.graph, node_id, new_element)
             node_item.update_element(new_element)
 
@@ -59,10 +74,6 @@ class MoleculeGraphScene(QGraphicsScene):
                 self.removeItem(edge)
             self.removeItem(node_item)
             del self.node_items[node_id]
-
-    def on_add_edge(self, node_item):
-        # Aquí puedes implementar selección de segundo nodo
-        print(f"Añadir enlace desde {self._get_node_id_from_item(node_item)}")
 
     def _get_node_id_from_item(self, item):
         # Asume que puedes mapear el item a su id
@@ -111,7 +122,7 @@ class MoleculeGraphScene(QGraphicsScene):
                         bond_type="SINGLE"
                     )
                     newedge = EdgeItem(self.edge_source_node, clicked_item, "SINGLE")
-                    self.addItem(newedge)
+                    self.add_edge(newedge)
                     self.cancel_temporary_edge()
                     return
 
@@ -123,3 +134,63 @@ class MoleculeGraphScene(QGraphicsScene):
             self.cancel_temporary_edge()
             return
         super().keyPressEvent(event)
+
+    def on_modify_edge(self, edge_item):
+        source_id = self._get_node_id_from_item(edge_item.source)
+        target_id = self._get_node_id_from_item(edge_item.target)
+        bond_type, ok = QInputDialog.getItem(None, "Modificar enlace", "Tipo de enlace:",
+                                             ["SINGLE", "DOUBLE", "TRIPLE", "AROMATIC"], 0, False)
+        if ok and bond_type:
+            GraphManager.modify_edge(self.graph, source_id, target_id, bond_type)
+            edge_item.update_bond_type(bond_type)
+
+    def on_delete_edge(self, edge_item):
+        source_id = self._get_node_id_from_item(edge_item.source)
+        target_id = self._get_node_id_from_item(edge_item.target)
+        confirm = QMessageBox.question(None, "Confirmar", "¿Eliminar este enlace?")
+        if confirm == QMessageBox.Yes:
+            GraphManager.delete_edge(self.graph, source_id, target_id)
+            self.removeItem(edge_item)
+            edge_item.source.edges.remove(edge_item)
+            edge_item.target.edges.remove(edge_item)
+
+    def on_add_node_to_edge(self, edge_item):
+        # 1. Preguntar al usuario el símbolo químico
+        symbol, ok = QInputDialog.getText(self.views()[0], "Nuevo nodo", "Símbolo del nuevo átomo (Ej: C, O, N):")
+        if not ok or not symbol.strip():
+            return
+
+        symbol = symbol.strip().upper()
+
+        # 2. Calcular posición media entre source y target
+        src = edge_item.source.sceneBoundingRect().center()
+        tgt = edge_item.target.sceneBoundingRect().center()
+        mid = QPointF((src.x() + tgt.x()) / 2, (src.y() + tgt.y()) / 2)
+
+        # 3. Crear nuevo nodo
+        new_node_id = str(uuid.uuid4())
+        new_node_item = NodeItem(mid.x(), mid.y(), 20, symbol, new_node_id)
+
+        self.add_node(new_node_item)
+
+        # 4. Eliminar la arista original
+        source_id = self._get_node_id_from_item(edge_item.source)
+        target_id = self._get_node_id_from_item(edge_item.target)
+        if self.graph.has_edge(source_id, target_id):
+            GraphManager.delete_edge(self.graph, source_id, target_id)
+            self.removeItem(edge_item)
+            edge_item.source.edges.remove(edge_item)
+            edge_item.target.edges.remove(edge_item)
+
+        # 5. Añadir dos nuevas aristas
+        self.graph.add_edge(source_id, new_node_id, bond_type=edge_item.bond_type)
+        self.graph.add_edge(new_node_id, target_id, bond_type=edge_item.bond_type)
+
+        edge1 = EdgeItem(edge_item.source, new_node_item, edge_item.bond_type)
+        edge2 = EdgeItem(new_node_item, edge_item.target, edge_item.bond_type)
+
+        self.addItem(edge1)
+        self.addItem(edge2)
+
+
+    

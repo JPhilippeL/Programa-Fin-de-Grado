@@ -10,9 +10,10 @@ ATOM_COLORS = {
     "P":  "#FF9933",  # Naranja para Fósforo
     "Cl": "#33FF33",  # Verde brillante para Cloro
     "F":  "#99FF33",  # Verde lima para Flúor
-    "Br": "#B5651D",  # Marrón anaranjado para Bromo
+    "BR": "#B5651D",  # Marrón anaranjado para Bromo
     "I":  "#800080",  # Púrpura para Yodo
-    "Fe": "#FF6600",  # Naranja fuerte para Hierro
+    "FE": "#FF6600",  # Naranja fuerte para Hierro
+    "AU": "#FFD700",  # Dorado para Oro
 }
 
 ATOM_TEXT_COLORS = {
@@ -24,7 +25,7 @@ ATOM_TEXT_COLORS = {
     "P":  BACKGROUND_COLOR,
     "Cl": BACKGROUND_COLOR,
     "F":  BACKGROUND_COLOR,
-    "Br": ATOM_TEXT_COLORS_DEFAULT,
+    "BR": ATOM_TEXT_COLORS_DEFAULT,
     "I":  ATOM_TEXT_COLORS_DEFAULT,
-    "Fe": BACKGROUND_COLOR,
+    "FE": BACKGROUND_COLOR,
 }

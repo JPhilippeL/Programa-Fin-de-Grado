@@ -6,8 +6,8 @@ from ui.utils import ATOM_COLORS, ATOM_TEXT_COLORS, ATOM_COLORS_DEFAULT, ATOM_TE
 NODE_RADIUS = 20
 
 class NodeItem(QGraphicsEllipseItem, QObject):
-    modify_requested = Signal(object)  # self
-    delete_requested = Signal(object)  # self
+    modify_node_requested = Signal(object)  # self
+    delete_node_requested = Signal(object)  # self
     add_edge_requested = Signal(object)  # self
     
     def __init__(self, x, y, radius, element, node_id):
@@ -22,7 +22,7 @@ class NodeItem(QGraphicsEllipseItem, QObject):
         self.setBrush(QBrush(QColor(color)))
         self.setFlag(QGraphicsItem.ItemIsMovable)
         self.setFlag(QGraphicsItem.ItemSendsGeometryChanges)
-        self.setZValue(1)
+        self.setZValue(10)
 
         # Texto del elemento (como "C", "O", etc.)
         self.label = QGraphicsTextItem(element, self)
@@ -31,7 +31,7 @@ class NodeItem(QGraphicsEllipseItem, QObject):
         self.label.setFont(font)
 
         self.label.setDefaultTextColor(text_color)
-        self.label.setZValue(2)
+        self.label.setZValue(20)
         # Calcular centro del nodo y ajustar el texto
         text_rect = self.label.boundingRect()
         self.label.setPos(-text_rect.width() / 2, -text_rect.height() / 2)
@@ -74,8 +74,11 @@ class NodeItem(QGraphicsEllipseItem, QObject):
         action = menu.exec(event.screenPos())
 
         if action == modify_action:
-            self.modify_requested.emit(self)
+            self.modify_node_requested.emit(self)
         elif action == delete_action:
-            self.delete_requested.emit(self)
+            self.delete_node_requested.emit(self)
         elif action == add_edge_action:
             self.add_edge_requested.emit(self)
+
+    def get_id(self):
+        return self.node_id
