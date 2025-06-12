@@ -29,7 +29,7 @@ class NodeItem(QGraphicsEllipseItem, QObject):
         element = element.lower()   # Se pasa a minúsculas y después se usa title() para que quede la primera letra mayúscula
         # Crear etiqueta de texto
         self.label = QGraphicsTextItem(element.title(), self)
-        font = QFont("Arial", 12)
+        font = QFont("Arial", 13)
         font.setBold(True)
         self.label.setFont(font)
         self.label.setDefaultTextColor(text_color)
