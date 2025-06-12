@@ -31,31 +31,24 @@ def parse_sdf(file_path):
 
     return graph
 
-def parse_sdf_from_content(contents):
-    # contents viene con un prefijo: "data:chemical/x-mdl-sdfile;base64,AAA..."
-    content_type, content_string = contents.split(',')
-    decoded = base64.b64decode(content_string)
+def graph_to_mol(graph):
+    mol = Chem.RWMol()
 
-    # rdkit espera un string con el contenido del archivo (mol block)
-    mol_block = decoded.decode('utf-8')
+    # Mapear ID de nodos a nuevos índices de átomos
+    node_to_idx = {}
 
-    mol = Chem.MolFromMolBlock(mol_block, sanitize=True, removeHs=True)
-    if mol is None:
-        raise ValueError("No se pudo leer la molécula del contenido SDF.")
-    
-    graph = nx.Graph()
+    for node_id in sorted(graph.nodes, key=int):
+        element = graph.nodes[node_id]["element"]
+        atom = Chem.Atom(element)
+        idx = mol.AddAtom(atom)
+        node_to_idx[node_id] = idx
 
-    for atom in mol.GetAtoms():
-        idx = atom.GetIdx()
-        pos = mol.GetConformer().GetAtomPosition(idx)
-        graph.add_node(str(idx), 
-                       element=atom.GetSymbol(), 
-                       x=pos.x, y=pos.y, z=pos.z)
+    for u, v, data in graph.edges(data=True):
+        bond_type_str = data.get("bond_type", "SINGLE").upper()
+        bond_type = getattr(Chem.rdchem.BondType, bond_type_str, Chem.rdchem.BondType.SINGLE)
+        mol.AddBond(node_to_idx[u], node_to_idx[v], bond_type)
 
-    for bond in mol.GetBonds():
-        start = bond.GetBeginAtomIdx()
-        end = bond.GetEndAtomIdx()
-        bond_type = bond.GetBondType()
-        graph.add_edge(str(start), str(end), bond_type=str(bond_type))
+    mol = mol.GetMol()
+    AllChem.Compute2DCoords(mol)
 
-    return graph
+    return mol

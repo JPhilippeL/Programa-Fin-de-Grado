@@ -17,8 +17,8 @@ class NodeItem(QGraphicsEllipseItem, QObject):
         QGraphicsEllipseItem.__init__(self, -radius, -radius, 2 * radius, 2 * radius)
         
         # Estilo según el elemento
-        color = QColor(ATOM_COLORS.get(element.upper(), ATOM_COLORS_DEFAULT))
-        text_color = QColor(ATOM_TEXT_COLORS.get(element.upper(), ATOM_TEXT_COLORS_DEFAULT))
+        color = QColor(ATOM_COLORS.get(element, ATOM_COLORS_DEFAULT))
+        text_color = QColor(ATOM_TEXT_COLORS.get(element, ATOM_TEXT_COLORS_DEFAULT))
 
         self.node_id = node_id
         self.setBrush(QBrush(QColor(color)))
@@ -26,9 +26,8 @@ class NodeItem(QGraphicsEllipseItem, QObject):
         self.setFlag(QGraphicsItem.ItemSendsGeometryChanges)
         self.setZValue(10)
 
-        element = element.lower()   # Se pasa a minúsculas y después se usa title() para que quede la primera letra mayúscula
         # Crear etiqueta de texto
-        self.label = QGraphicsTextItem(element.title(), self)
+        self.label = QGraphicsTextItem(element, self)
         font = QFont("Arial", 13)
         font.setBold(True)
         self.label.setFont(font)
@@ -58,13 +57,11 @@ class NodeItem(QGraphicsEllipseItem, QObject):
         return super().itemChange(change, value)
     
     def update_element(self, new_element):
-        new_element = new_element.lower()
-        new_element = new_element.title()  # Asegurarse de que la primera letra sea mayúscula
         self.element = new_element
 
         # Actualizar color de fondo y texto
-        color = QColor(ATOM_COLORS.get(new_element.upper(), ATOM_COLORS_DEFAULT))
-        text_color = QColor(ATOM_TEXT_COLORS.get(new_element.upper(), ATOM_TEXT_COLORS_DEFAULT))
+        color = QColor(ATOM_COLORS.get(new_element, ATOM_COLORS_DEFAULT))
+        text_color = QColor(ATOM_TEXT_COLORS.get(new_element, ATOM_TEXT_COLORS_DEFAULT))
         self.setBrush(QBrush(color))
         self.label.setDefaultTextColor(text_color)
 

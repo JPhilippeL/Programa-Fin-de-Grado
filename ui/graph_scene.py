@@ -62,7 +62,7 @@ class MoleculeGraphScene(QGraphicsScene):
         node_id = self._get_node_id_from_item(node_item)
         new_element, ok = QInputDialog.getText(None, "Modificar nodo", "Nuevo símbolo químico:")
         if ok and new_element:
-            new_element = new_element.strip().upper()
+            new_element = self.fix_element_symbol(new_element.strip())
             GraphManager.modify_node(self.graph, node_id, new_element)
             node_item.update_element(new_element)
 
@@ -171,7 +171,7 @@ class MoleculeGraphScene(QGraphicsScene):
         if not ok or not symbol.strip():
             return
 
-        symbol = symbol.strip().upper()
+        symbol = self.fix_element_symbol(symbol.strip())
 
         # 2. Calcular posición media entre source y target
         src = edge_item.source.sceneBoundingRect().center()
@@ -212,7 +212,7 @@ class MoleculeGraphScene(QGraphicsScene):
         if not ok or not symbol.strip():
             return
 
-        symbol = symbol.strip().upper()
+        symbol = self.fix_element_symbol(symbol.strip())
         new_node_id = str(uuid.uuid4())
 
         new_node_item = NodeItem(pos.x(), pos.y(), 20, symbol, new_node_id)
@@ -224,6 +224,15 @@ class MoleculeGraphScene(QGraphicsScene):
         node_id = self._get_node_id_from_item(node_item)
         new_position = (node_item.pos().x(), node_item.pos().y())
         GraphManager.update_node_position(self.graph, node_id, new_position)
+
+    def fix_element_symbol(self, element: str) -> str:
+        if len(element) == 1:
+            return element.upper()
+        elif len(element) > 1:
+            return element[0].upper() + element[1:].lower()
+        else:
+            return element
+
 
 
     

@@ -8,12 +8,12 @@ ATOM_COLORS = {
     "N":  "#4A90E2",  # Azul claro para Nitrógeno
     "S":  "#FFFF66",  # Amarillo pálido para Azufre
     "P":  "#FF9933",  # Naranja para Fósforo
-    "CL": "#33FF33",  # Verde brillante para Cloro
+    "Cl": "#33FF33",  # Verde brillante para Cloro
     "F":  "#99FF33",  # Verde lima para Flúor
-    "BR": "#B5651D",  # Marrón anaranjado para Bromo
+    "Br": "#B5651D",  # Marrón anaranjado para Bromo
     "I":  "#800080",  # Púrpura para Yodo
-    "FE": "#FF6600",  # Naranja fuerte para Hierro
-    "AU": "#FFD700",  # Dorado para Oro
+    "Fe": "#FF6600",  # Naranja fuerte para Hierro
+    "Au": "#FFD700",  # Dorado para Oro
 }
 
 ATOM_TEXT_COLORS = {
@@ -23,10 +23,10 @@ ATOM_TEXT_COLORS = {
     "N":  ATOM_TEXT_COLORS_DEFAULT,
     "S":  BACKGROUND_COLOR,
     "P":  ATOM_TEXT_COLORS_DEFAULT,
-    "CL": ATOM_TEXT_COLORS_DEFAULT,
+    "Cl": ATOM_TEXT_COLORS_DEFAULT,
     "F":  BACKGROUND_COLOR,
-    "BR": ATOM_TEXT_COLORS_DEFAULT,
+    "Br": ATOM_TEXT_COLORS_DEFAULT,
     "I":  ATOM_TEXT_COLORS_DEFAULT,
-    "FE": ATOM_TEXT_COLORS_DEFAULT,
-    "AU": ATOM_TEXT_COLORS_DEFAULT,
+    "Fe": ATOM_TEXT_COLORS_DEFAULT,
+    "Au": ATOM_TEXT_COLORS_DEFAULT,
 }
