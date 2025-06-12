@@ -44,6 +44,7 @@ class MoleculeGraphScene(QGraphicsScene):
         node.modify_node_requested.connect(self.on_modify_node)
         node.delete_node_requested.connect(self.on_delete_node)
         node.add_edge_requested.connect(self.start_temporary_edge)
+        node.position_changed.connect(self.update_node_position)
         id = node.get_id()
 
         self.addItem(node)
@@ -125,6 +126,13 @@ class MoleculeGraphScene(QGraphicsScene):
                     self.add_edge(newedge)
                     self.cancel_temporary_edge()
                     return
+                
+        # Detectar clic derecho en el fondo añade nodo
+        if not self.edge_mode and event.button() == Qt.RightButton:
+            clicked_item = self.itemAt(event.scenePos(), QTransform())
+            if not clicked_item:
+                self._create_node_at(event.scenePos())
+                return
 
 
         super().mousePressEvent(event)
@@ -135,6 +143,7 @@ class MoleculeGraphScene(QGraphicsScene):
             return
         super().keyPressEvent(event)
 
+    # Método para modificar un enlace
     def on_modify_edge(self, edge_item):
         source_id = self._get_node_id_from_item(edge_item.source)
         target_id = self._get_node_id_from_item(edge_item.target)
@@ -144,6 +153,7 @@ class MoleculeGraphScene(QGraphicsScene):
             GraphManager.modify_edge(self.graph, source_id, target_id, bond_type)
             edge_item.update_bond_type(bond_type)
 
+    # Método para eliminar un enlace
     def on_delete_edge(self, edge_item):
         source_id = self._get_node_id_from_item(edge_item.source)
         target_id = self._get_node_id_from_item(edge_item.target)
@@ -154,6 +164,7 @@ class MoleculeGraphScene(QGraphicsScene):
             edge_item.source.edges.remove(edge_item)
             edge_item.target.edges.remove(edge_item)
 
+    # Método para añadir un nodo en medio de una arista existente
     def on_add_node_to_edge(self, edge_item):
         # 1. Preguntar al usuario el símbolo químico
         symbol, ok = QInputDialog.getText(self.views()[0], "Nuevo nodo", "Símbolo del nuevo átomo (Ej: C, O, N):")
@@ -172,6 +183,7 @@ class MoleculeGraphScene(QGraphicsScene):
         new_node_item = NodeItem(mid.x(), mid.y(), 20, symbol, new_node_id)
 
         self.add_node(new_node_item)
+        GraphManager.add_node(self.graph, new_node_id, symbol, position=(mid.x(), mid.y()))
 
         # 4. Eliminar la arista original
         source_id = self._get_node_id_from_item(edge_item.source)
@@ -184,13 +196,34 @@ class MoleculeGraphScene(QGraphicsScene):
 
         # 5. Añadir dos nuevas aristas
         self.graph.add_edge(source_id, new_node_id, bond_type=edge_item.bond_type)
+        GraphManager.add_edge(self.graph, source_id, new_node_id, bond_type=edge_item.bond_type)
         self.graph.add_edge(new_node_id, target_id, bond_type=edge_item.bond_type)
+        GraphManager.add_edge(self.graph, new_node_id, target_id, bond_type=edge_item.bond_type)
 
         edge1 = EdgeItem(edge_item.source, new_node_item, edge_item.bond_type)
         edge2 = EdgeItem(new_node_item, edge_item.target, edge_item.bond_type)
 
-        self.addItem(edge1)
-        self.addItem(edge2)
+        self.add_edge(edge1)
+        self.add_edge(edge2)
+
+    # Metodo para crear un nuevo nodo en una posición específica
+    def _create_node_at(self, pos):
+        symbol, ok = QInputDialog.getText(None, "Nuevo nodo", "Símbolo del nuevo átomo (Ej: C, O, N):")
+        if not ok or not symbol.strip():
+            return
+
+        symbol = symbol.strip().upper()
+        new_node_id = str(uuid.uuid4())
+
+        new_node_item = NodeItem(pos.x(), pos.y(), 20, symbol, new_node_id)
+        self.add_node(new_node_item)
+        GraphManager.add_node(self.graph, new_node_id, symbol, position=(pos.x(), pos.y()))
+
+    # Metodo para actualizar la posición de un nodo en graph_manager
+    def update_node_position(self, node_item):
+        node_id = self._get_node_id_from_item(node_item)
+        new_position = (node_item.pos().x(), node_item.pos().y())
+        GraphManager.update_node_position(self.graph, node_id, new_position)
 
 
     

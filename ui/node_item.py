@@ -2,6 +2,7 @@ from PySide6.QtWidgets import QGraphicsEllipseItem, QGraphicsTextItem, QGraphics
 from PySide6.QtGui import QBrush, QColor, QFont
 from PySide6.QtCore import Signal, QObject, Qt
 from ui.utils import ATOM_COLORS, ATOM_TEXT_COLORS, ATOM_COLORS_DEFAULT, ATOM_TEXT_COLORS_DEFAULT
+from core.graph_manager import GraphManager
 
 NODE_RADIUS = 20
 
@@ -9,14 +10,15 @@ class NodeItem(QGraphicsEllipseItem, QObject):
     modify_node_requested = Signal(object)  # self
     delete_node_requested = Signal(object)  # self
     add_edge_requested = Signal(object)  # self
+    position_changed = Signal(object)  # self
     
     def __init__(self, x, y, radius, element, node_id):
         QObject.__init__(self)
         QGraphicsEllipseItem.__init__(self, -radius, -radius, 2 * radius, 2 * radius)
         
         # Estilo según el elemento
-        color = QColor(ATOM_COLORS.get(element, ATOM_COLORS_DEFAULT))
-        text_color = QColor(ATOM_TEXT_COLORS.get(element, ATOM_TEXT_COLORS_DEFAULT))
+        color = QColor(ATOM_COLORS.get(element.upper(), ATOM_COLORS_DEFAULT))
+        text_color = QColor(ATOM_TEXT_COLORS.get(element.upper(), ATOM_TEXT_COLORS_DEFAULT))
 
         self.node_id = node_id
         self.setBrush(QBrush(QColor(color)))
@@ -24,14 +26,15 @@ class NodeItem(QGraphicsEllipseItem, QObject):
         self.setFlag(QGraphicsItem.ItemSendsGeometryChanges)
         self.setZValue(10)
 
-        # Texto del elemento (como "C", "O", etc.)
-        self.label = QGraphicsTextItem(element, self)
+        element = element.lower()   # Se pasa a minúsculas y después se usa title() para que quede la primera letra mayúscula
+        # Crear etiqueta de texto
+        self.label = QGraphicsTextItem(element.title(), self)
         font = QFont("Arial", 12)
         font.setBold(True)
         self.label.setFont(font)
-
         self.label.setDefaultTextColor(text_color)
         self.label.setZValue(20)
+
         # Calcular centro del nodo y ajustar el texto
         text_rect = self.label.boundingRect()
         self.label.setPos(-text_rect.width() / 2, -text_rect.height() / 2)
@@ -47,14 +50,21 @@ class NodeItem(QGraphicsEllipseItem, QObject):
         if change == QGraphicsItem.ItemPositionChange:
             for edge in self.edges:
                 edge.update_position()
+        elif change == QGraphicsItem.ItemPositionHasChanged:
+            # Después de moverse, actualizar la posición en el grafo lógico
+            pos = self.pos()
+            self.position_changed.emit(self)
+
         return super().itemChange(change, value)
     
     def update_element(self, new_element):
+        new_element = new_element.lower()
+        new_element = new_element.title()  # Asegurarse de que la primera letra sea mayúscula
         self.element = new_element
 
         # Actualizar color de fondo y texto
-        color = QColor(ATOM_COLORS.get(new_element, ATOM_COLORS_DEFAULT))
-        text_color = QColor(ATOM_TEXT_COLORS.get(new_element, ATOM_TEXT_COLORS_DEFAULT))
+        color = QColor(ATOM_COLORS.get(new_element.upper(), ATOM_COLORS_DEFAULT))
+        text_color = QColor(ATOM_TEXT_COLORS.get(new_element.upper(), ATOM_TEXT_COLORS_DEFAULT))
         self.setBrush(QBrush(color))
         self.label.setDefaultTextColor(text_color)
 
