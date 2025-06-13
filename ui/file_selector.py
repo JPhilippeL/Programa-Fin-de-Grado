@@ -1,8 +1,9 @@
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QPushButton, QLabel, QFileDialog, QMessageBox
 from PySide6.QtGui import QFont
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, Signal
 
 class FileSelector(QWidget):
+    archivo_seleccionado = Signal(str)  # Señal que emite la ruta del archivo
     def __init__(self):
         super().__init__()
 
@@ -37,6 +38,7 @@ class FileSelector(QWidget):
         if file_path:
             self.selected_file = file_path
             self.label.setText(f"Archivo seleccionado:\n{file_path}")
+            self.archivo_seleccionado.emit(file_path)  # Emitir la señal
         else:
             QMessageBox.warning(self, "Archivo no seleccionado", "Debe seleccionar un archivo para continuar.")
 

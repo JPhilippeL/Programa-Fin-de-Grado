@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QMenuBar, QFileDialog
+from PySide6.QtWidgets import QMenuBar, QFileDialog, QMessageBox
 from PySide6.QtGui import QAction
 from core.sdf_parser import parse_sdf
 from ui.graph_view import MoleculeGraphView
@@ -37,23 +37,8 @@ class MenuBar(QMenuBar):
             "Archivos SDF (*.sdf);;Todos los archivos (*)"
         )
         if file_path:
-            graph = parse_sdf(file_path)
+            self.parent.load_graph_from_file(file_path)
 
-            if self.parent.graph_view:
-                self.parent.centralWidget().layout().removeWidget(self.parent.graph_view)
-                self.parent.graph_view.deleteLater()
-
-            self.parent.graph_view = MoleculeGraphView(graph)
-
-            if not self.parent.centralWidget():
-                from PySide6.QtWidgets import QWidget, QVBoxLayout
-                central = QWidget()
-                layout = QVBoxLayout(central)
-                self.parent.setCentralWidget(central)
-            else:
-                layout = self.parent.centralWidget().layout()
-
-            layout.addWidget(self.parent.graph_view)
 
     def guardar_archivo(self):
         if not self.parent.graph_view:
@@ -68,10 +53,23 @@ class MenuBar(QMenuBar):
         if not file_path:
             return
 
-        # Convertir grafo a Mol y guardar
-        mol = graph_to_mol(self.parent.graph_view.scene().graph)
+        # Convertir grafo a Mol
+        try:
+            mol = graph_to_mol(self.parent.graph_view.scene().graph)
 
-        writer = Chem.SDWriter(file_path)
-        writer.write(mol)
-        writer.close()
+            # Intentar sanitizar la molécula para detectar errores antes de guardar
+            Chem.SanitizeMol(mol)  # Esto lanza excepciones si hay errores químicos
+
+            # Intentar escribir el archivo
+            writer = Chem.SDWriter(file_path)
+            writer.write(mol)
+            writer.close()
+
+        except Exception as e:
+            # Mostrar mensaje de error al usuario
+            QMessageBox.critical(
+                self.parent,
+                "Error al guardar",
+                f"No se pudo guardar la molécula:\n\n{str(e)}"
+            )
 

@@ -25,7 +25,7 @@ class MainWindow(QMainWindow):
         self.central_layout.addWidget(self.file_selector)
 
         # Conexión del botón "Abrir archivo"
-        self.file_selector.open_button.clicked.connect(self.load_graph_if_selected)
+        self.file_selector.archivo_seleccionado.connect(self.load_graph_from_file)
 
         # Para luego reemplazarlo
         self.graph_view = None
@@ -35,15 +35,12 @@ class MainWindow(QMainWindow):
         new_graph_view = MoleculeGraphView(graph)
 
         # Eliminar selector si existe
-        if self.file_selector:
-            self.central_layout.removeWidget(self.file_selector)
-            self.file_selector.setParent(None)
-            self.file_selector = None
+        self.clear_widget(self.file_selector)
+        self.file_selector = None
 
         # Eliminar grafo anterior si existe
-        if self.graph_view:
-            self.central_layout.removeWidget(self.graph_view)
-            self.graph_view.setParent(None)
+        self.clear_widget(self.graph_view)
+        self.graph_view = None
 
         self.graph_view = new_graph_view
         self.central_layout.addWidget(self.graph_view)
@@ -55,8 +52,7 @@ class MainWindow(QMainWindow):
         )
 
 
-    def load_graph_if_selected(self):
-        file_path = self.file_selector.selected_file
+    def load_graph_from_file(self, file_path):
         if not file_path:
             return
 
@@ -66,38 +62,21 @@ class MainWindow(QMainWindow):
             QMessageBox.critical(self, "Error al cargar", f"No se pudo cargar el archivo:\n{str(e)}")
             return
 
-        # Crear nueva vista de grafo
         new_graph_view = MoleculeGraphView(graph)
 
-        # Reemplazar el selector de archivo por la vista del grafo
-        self.central_layout.removeWidget(self.file_selector)
-        self.file_selector.setParent(None)
+        self.clear_widget(self.file_selector)
+        self.file_selector = None
 
-        if self.graph_view:
-            self.central_layout.removeWidget(self.graph_view)
-            self.graph_view.setParent(None)
+        self.clear_widget(self.graph_view)
+        self.graph_view = None
+
 
         self.graph_view = new_graph_view
         self.central_layout.addWidget(self.graph_view)
-                
-    def load_graph_from_file(self, file_path):
-        try:
-            graph = parse_sdf(file_path)
-        except Exception as e:
-            QMessageBox.critical(self, "Error al cargar", f"No se pudo cargar el archivo:\n{str(e)}")
-            return
 
-        new_graph_view = MoleculeGraphView(graph)
+    def clear_widget(self, widget):
+        # Elimina un widget del layout si existe
+        if widget:
+            self.central_layout.removeWidget(widget)
+            widget.setParent(None)
 
-        # Si hay algo mostrado, lo quitamos
-        if self.file_selector:
-            self.central_layout.removeWidget(self.file_selector)
-            self.file_selector.setParent(None)
-            self.file_selector = None
-
-        if self.graph_view:
-            self.central_layout.removeWidget(self.graph_view)
-            self.graph_view.setParent(None)
-
-        self.graph_view = new_graph_view
-        self.central_layout.addWidget(self.graph_view)
