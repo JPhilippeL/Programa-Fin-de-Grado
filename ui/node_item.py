@@ -39,6 +39,8 @@ class NodeItem(QGraphicsEllipseItem, QObject):
         self.label.setPos(-text_rect.width() / 2, -text_rect.height() / 2)
         self.label.setAcceptedMouseButtons(Qt.NoButton)  # No permitir interacción directa con el texto
 
+        self.setToolTip(f"ID: {self.node_id}")
+
         # Lista de conexiones (enlaces)
         self.edges = []
 

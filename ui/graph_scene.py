@@ -5,7 +5,6 @@ from ui.utils import BACKGROUND_COLOR
 from ui.edge_item import EdgeItem
 from ui.node_item import NodeItem
 from core.graph_manager import GraphManager
-import uuid
 
 class MoleculeGraphScene(QGraphicsScene):
 
@@ -179,7 +178,7 @@ class MoleculeGraphScene(QGraphicsScene):
         mid = QPointF((src.x() + tgt.x()) / 2, (src.y() + tgt.y()) / 2)
 
         # 3. Crear nuevo nodo
-        new_node_id = str(uuid.uuid4())
+        new_node_id = str(GraphManager.obtain_highest_node_id(self.graph))
         new_node_item = NodeItem(mid.x(), mid.y(), 20, symbol, new_node_id)
 
         self.add_node(new_node_item)
@@ -213,7 +212,7 @@ class MoleculeGraphScene(QGraphicsScene):
             return
 
         symbol = self.fix_element_symbol(symbol.strip())
-        new_node_id = str(uuid.uuid4())
+        new_node_id = str(GraphManager.obtain_highest_node_id(self.graph))
 
         new_node_item = NodeItem(pos.x(), pos.y(), 20, symbol, new_node_id)
         self.add_node(new_node_item)

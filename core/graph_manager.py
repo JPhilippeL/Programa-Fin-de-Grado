@@ -38,4 +38,12 @@ class GraphManager:
         if graph.has_edge(source_id, target_id):
             graph.edges[source_id, target_id]['bond_type'] = new_bond_type.upper()
 
+    @staticmethod
+    def obtain_highest_node_id(graph):
+        if not graph.nodes:
+            return 0
+        # Convertir los IDs a int para comparar
+        max_id = max(int(node_id) for node_id in graph.nodes)
+        return max_id + 1
+
     
