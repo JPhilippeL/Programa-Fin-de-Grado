@@ -4,6 +4,7 @@ from core.sdf_parser import parse_sdf
 from ui.graph_view import MoleculeGraphView
 from core.sdf_parser import graph_to_mol
 from rdkit import Chem
+import networkx as nx
 
 class MenuBar(QMenuBar):
     def __init__(self, parent):
@@ -12,6 +13,11 @@ class MenuBar(QMenuBar):
 
         archivo_menu = self.addMenu("Archivo")
 
+        nuevo_action = QAction("Nuevo", self)
+        nuevo_action.triggered.connect(self.nuevo_archivo)
+        archivo_menu.addAction(nuevo_action)
+
+
         cargar_action = QAction("Cargar", self)
         cargar_action.triggered.connect(self.cargar_archivo)
         archivo_menu.addAction(cargar_action)
@@ -19,6 +25,9 @@ class MenuBar(QMenuBar):
         guardar_action = QAction("Guardar", self)
         guardar_action.triggered.connect(self.guardar_archivo)
         archivo_menu.addAction(guardar_action)  # sin funcionalidad por ahora
+
+    def nuevo_archivo(self):
+        self.parent.create_new_graph()
 
     def cargar_archivo(self):
         file_path, _ = QFileDialog.getOpenFileName(

@@ -3,6 +3,7 @@ from ui.graph_view import MoleculeGraphView
 from core.sdf_parser import parse_sdf
 from ui.file_selector import FileSelector
 from ui.menu_bar import MenuBar
+import networkx as nx
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -15,6 +16,10 @@ class MainWindow(QMainWindow):
         self.central_layout = QVBoxLayout(self.central_widget)
         self.setCentralWidget(self.central_widget)
 
+        self.menu_bar = MenuBar(self)
+        self.setMenuBar(self.menu_bar)
+
+
         # Inicialmente, mostramos el selector de archivo
         self.file_selector = FileSelector()
         self.central_layout.addWidget(self.file_selector)
@@ -24,6 +29,31 @@ class MainWindow(QMainWindow):
 
         # Para luego reemplazarlo
         self.graph_view = None
+
+    def create_new_graph(self):
+        graph = nx.Graph()
+        new_graph_view = MoleculeGraphView(graph)
+
+        # Eliminar selector si existe
+        if self.file_selector:
+            self.central_layout.removeWidget(self.file_selector)
+            self.file_selector.setParent(None)
+            self.file_selector = None
+
+        # Eliminar grafo anterior si existe
+        if self.graph_view:
+            self.central_layout.removeWidget(self.graph_view)
+            self.graph_view.setParent(None)
+
+        self.graph_view = new_graph_view
+        self.central_layout.addWidget(self.graph_view)
+
+        QMessageBox.information(
+            self,
+            "Consejo",
+            "Haz clic derecho sobre el área para añadir un nodo."
+        )
+
 
     def load_graph_if_selected(self):
         file_path = self.file_selector.selected_file
@@ -50,9 +80,6 @@ class MainWindow(QMainWindow):
         self.graph_view = new_graph_view
         self.central_layout.addWidget(self.graph_view)
                 
-        self.menu_bar = MenuBar(self)
-        self.setMenuBar(self.menu_bar)
-
     def load_graph_from_file(self, file_path):
         try:
             graph = parse_sdf(file_path)
