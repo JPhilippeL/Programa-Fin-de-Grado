@@ -34,12 +34,6 @@ class MenuBar(QMenuBar):
         verificar_action.triggered.connect(self.verificar_molecula)
         verificacion_menu.addAction(verificar_action)
 
-        self.verificacion_guardar_action = QAction("Verificación al guardar", self)
-        self.verificacion_guardar_action.setCheckable(True)
-        self.verificacion_guardar_action.setChecked(True)
-        self.verificacion_guardar_action.toggled.connect(self.toggle_verificacion_al_guardar)
-        verificacion_menu.addAction(self.verificacion_guardar_action)
-
     def nuevo_archivo(self):
         self.parent.create_new_graph()
 
@@ -67,12 +61,10 @@ class MenuBar(QMenuBar):
         if not file_path:
             return
 
-        sanitize = self.verificacion_al_guardar_activada
-        mol = graph_to_mol(self.parent.graph_view.scene().graph, sanitize=sanitize)
+        mol = graph_to_mol(self.parent.graph_view.scene().graph)
 
         try:
-            if sanitize:
-                Chem.SanitizeMol(mol)
+            Chem.SanitizeMol(mol)
 
             writer = Chem.SDWriter(file_path)
             writer.write(mol)
@@ -108,7 +100,4 @@ class MenuBar(QMenuBar):
                 "Error de Verificación",
                 f"Se detectaron errores químicos en la molécula:\n\n{str(e)}"
             )
-
-    def toggle_verificacion_al_guardar(self, checked):
-        self.verificacion_al_guardar_activada = checked
 
