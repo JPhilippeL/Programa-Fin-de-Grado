@@ -37,11 +37,22 @@ class MenuBar(QMenuBar):
         verificar_action.triggered.connect(self.verificar_molecula)
         verificacion_menu.addAction(verificar_action)
 
-        # Menu de Entrenamiento IA
-        entrenamiento_menu = self.addMenu("Entrenamiento IA")
+        # Menu de IA
+        ia_menu = self.addMenu("IA")
+
+        # Entrenamiento de IA
         entrenar_action = QAction("Entrenar IA", self)
         entrenar_action.triggered.connect(self.entrenar_ia)
-        entrenamiento_menu.addAction(entrenar_action)
+        ia_menu.addAction(entrenar_action)
+
+        # Testeo de IA
+        testeo_action = QAction("Testear IA", self)
+        testeo_action.triggered.connect(self.testear_modelo)
+        ia_menu.addAction(testeo_action)
+
+
+        
+
 
 
     def nuevo_archivo(self):
@@ -150,14 +161,44 @@ class MenuBar(QMenuBar):
             # Entrena el modelo
             train(model, dataloader, device, epochs=epochs, lr=0.001)
 
-            # Asegurar que la carpeta exista antes de guardar
+            checkpoint = {
+                'model_state_dict': model.state_dict(),
+                'model_type': modelo,
+                'input_dim': input_dim,
+                'edge_dim': edge_dim,
+                'epochs_trained': epochs,
+                # agrega otros parámetros que uses
+            }
+
             os.makedirs(os.path.dirname(save_path), exist_ok=True)
-            torch.save(model.state_dict(), save_path)
+            torch.save(checkpoint, save_path)
 
             QMessageBox.information(self.parent, "Entrenamiento completo", f"Modelo guardado en:\n{save_path}")
 
         except Exception as e:
             QMessageBox.critical(self.parent, "Error durante el entrenamiento", f"Ha ocurrido un error:\n\n{str(e)}")
+
+    def testear_modelo(self):
+        # Seleccionar archivo modelo .pt
+        checkpoint_path, _ = QFileDialog.getOpenFileName(self.parent, "Seleccionar archivo de modelo (.pt)", "", "Modelos (*.pt)")
+        if not checkpoint_path:
+            return
+
+        # Seleccionar archivo SDF
+        sdf_path, _ = QFileDialog.getOpenFileName(self.parent, "Seleccionar archivo SDF para predecir", "", "Archivos SDF (*.sdf)")
+        if not sdf_path:
+            return
+
+        try:
+            from ML.model_tester import cargar_y_predecir
+            pred = cargar_y_predecir(checkpoint_path, sdf_path)
+            QMessageBox.information(self.parent, "Predicción", f"El target predicho es: {pred:.4f}")
+            # en consola tmb
+            print(f"Predicción para {sdf_path}: {pred:.4f}")
+        except Exception as e:
+            QMessageBox.critical(self.parent, "Error en predicción", f"No se pudo realizar la predicción:\n{str(e)}")
+            # Q salga el error en la consola
+            print(f"Error en testear modelo: {str(e)}")
 
 
 
