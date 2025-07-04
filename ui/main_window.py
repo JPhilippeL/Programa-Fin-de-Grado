@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import QMainWindow, QFileDialog, QWidget, QVBoxLayout, QMessageBox
 from ui.graph_view import MoleculeGraphView
-from core.sdf_parser import parse_sdf
+from core.sdf_converter import parse_sdf
 from ui.file_selector import FileSelector
 from ui.menu_bar import MenuBar
 import networkx as nx

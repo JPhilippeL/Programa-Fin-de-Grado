@@ -5,6 +5,12 @@ from torch_geometric.data import Data
 from torch_geometric.loader import DataLoader
 
 def mol_to_graph_data_obj(mol):
+    bond_type_to_int = {
+        Chem.rdchem.BondType.SINGLE: 0,
+        Chem.rdchem.BondType.DOUBLE: 1,
+        Chem.rdchem.BondType.TRIPLE: 2,
+        Chem.rdchem.BondType.AROMATIC: 3
+    }
     #Convierte una molécula RDKit a un objeto Data de PyTorch Geometric.
     
     atom_features = []
@@ -17,10 +23,16 @@ def mol_to_graph_data_obj(mol):
     for bond in mol.GetBonds():
         i = bond.GetBeginAtomIdx()
         j = bond.GetEndAtomIdx()
+
         edge_index.append([i, j])
         edge_index.append([j, i])
-        edge_attr.append([bond.GetBondTypeAsDouble()])
-        edge_attr.append([bond.GetBondTypeAsDouble()])
+
+        bond_type = bond.GetBondType()
+        bond_type_idx = bond_type_to_int.get(bond_type, 0)  # default a 0
+
+        edge_attr.append([bond_type_idx])
+        edge_attr.append([bond_type_idx])
+
     edge_index = torch.tensor(edge_index, dtype=torch.long).t().contiguous()
     edge_attr = torch.tensor(edge_attr, dtype=torch.float)
 

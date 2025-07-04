@@ -1,10 +1,8 @@
 import torch
 import torch.nn.functional as F
 from torch_geometric.nn import GINConv, GINEConv, GATConv, global_add_pool
-from torch_geometric.data import DataLoader
-
-from torch import nn
-from torch_geometric.nn import Sequential
+from ML.torch_data_processing import read_targets, load_data_from_sdf, create_dataloader
+import os
 
 # ----------------------
 # Modelos GNN
@@ -44,7 +42,7 @@ class GINENet(torch.nn.Module):
                 torch.nn.ReLU(),
                 torch.nn.Linear(hidden_dim, hidden_dim)
             )
-            conv = GINEConv(nn_edge)
+            conv = GINEConv(nn_edge, edge_dim)
             self.convs.append(conv)
         self.lin = torch.nn.Linear(hidden_dim, 1)
 
@@ -111,4 +109,42 @@ def train(model, dataloader, device, epochs=20, lr=0.001):
             optimizer.step()
             total_loss += loss.item() * batch.num_graphs
         print(f"Epoch {epoch:03d} | Loss: {total_loss / len(dataloader.dataset):.6f}")
+
+
+def train_and_save_model(
+    sdf_dir,
+    target_file,
+    modelo_nombre,
+    epochs,
+    save_path,
+    batch_size=32,
+    lr=0.001
+):
+    target_dict = read_targets(target_file)
+    targetname = os.path.splitext(os.path.basename(target_file))[0]
+    data_list = load_data_from_sdf(sdf_dir, target_dict)
+    dataloader = create_dataloader(data_list, batch_size=batch_size)
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    input_dim = data_list[0].x.shape[1]
+    edge_dim = data_list[0].edge_attr.shape[1]
+    
+    model = create_model(modelo_nombre, input_dim, edge_dim)
+
+    train(model, dataloader, device, epochs=epochs, lr=lr)
+
+    checkpoint = {
+        'model_state_dict': model.state_dict(),
+        'model_type': modelo_nombre,
+        'input_dim': input_dim,
+        'edge_dim': edge_dim,
+        'epochs_trained': epochs,
+        'target_name': targetname,
+    }
+
+    os.makedirs(os.path.dirname(save_path), exist_ok=True)
+    torch.save(checkpoint, save_path)
+
+    return save_path  # opcional, para confirmar ruta
 

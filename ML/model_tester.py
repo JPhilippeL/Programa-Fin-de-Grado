@@ -1,3 +1,5 @@
+#model_tester.py
+
 import torch
 from rdkit import Chem
 from torch_geometric.data import Data
@@ -14,6 +16,7 @@ def cargar_y_predecir(checkpoint_path, sdf_path):
     model_type = checkpoint['model_type']
     input_dim = checkpoint['input_dim']
     edge_dim = checkpoint['edge_dim']
+    target_name = checkpoint.get('target_name', 'target')
 
     # Crear modelo con los parámetros guardados
     model = create_model(model_type, input_dim, edge_dim)
@@ -37,4 +40,4 @@ def cargar_y_predecir(checkpoint_path, sdf_path):
         out = model(data.x, data.edge_index, data.edge_attr, batch)
         pred = out.squeeze().item()
 
-    return pred
+    return pred, target_name

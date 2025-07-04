@@ -1,7 +1,6 @@
 # sdf_parser.py
 # Leer/Guardar archivos SDF y convertirlos a un grafo de NetworkX
 
-import base64
 from rdkit import Chem
 from rdkit.Chem import AllChem
 import networkx as nx
@@ -52,3 +51,13 @@ def graph_to_mol(graph):
     AllChem.Compute2DCoords(mol)
 
     return mol
+
+def save_graph_as_sdf(graph, file_path):
+    mol = graph_to_mol(graph)
+    try:
+        Chem.SanitizeMol(mol)
+        writer = Chem.SDWriter(file_path)
+        writer.write(mol)
+        writer.close()
+    except Exception as e:
+        raise RuntimeError(f"Error al guardar la molécula: {str(e)}")
