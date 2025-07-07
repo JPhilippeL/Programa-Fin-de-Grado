@@ -3,8 +3,8 @@
 import torch
 from rdkit import Chem
 from torch_geometric.data import Data
-from ML.torch_model_trainer import create_model
-from ML.torch_data_processing import mol_to_graph_data_obj
+from ML.model_trainer import create_model
+from ML.data_processing import mol_to_graph_data_obj
 
 def cargar_y_predecir(checkpoint_path, sdf_path):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

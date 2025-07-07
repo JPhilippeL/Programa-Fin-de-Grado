@@ -1,28 +1,43 @@
-from PySide6.QtWidgets import QMainWindow, QFileDialog, QWidget, QVBoxLayout, QMessageBox
+from PySide6.QtWidgets import QMainWindow, QFileDialog, QWidget, QVBoxLayout, QMessageBox, QSplitter
+from PySide6.QtCore import Qt
 from ui.graph_view import MoleculeGraphView
 from core.sdf_converter import parse_sdf
 from ui.file_selector import FileSelector
 from ui.menu_bar import MenuBar
+from PySide6.QtWidgets import QTextEdit
+from PySide6.QtGui import QTextCursor
 import networkx as nx
+from datetime import datetime
+import logging
+from ui.logger import QtHandler
+from ML.training_controller import TrainingController
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Editor Molecular")
-        self.resize(800, 600)
+        self.resize(900, 600)
 
         # Contenedor central permanente
         self.central_widget = QWidget()
-        self.central_layout = QVBoxLayout(self.central_widget)
+        #self.central_layout = QVBoxLayout(self.central_widget)
         self.setCentralWidget(self.central_widget)
 
         self.menu_bar = MenuBar(self)
         self.setMenuBar(self.menu_bar)
 
+        # Creamos un splitter vertical
+        self.splitter = QSplitter(Qt.Vertical, self.central_widget)
+
+        # Layout principal solo con el splitter
+        layout = QVBoxLayout(self.central_widget)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.addWidget(self.splitter)
+
 
         # Inicialmente, mostramos el selector de archivo
         self.file_selector = FileSelector()
-        self.central_layout.addWidget(self.file_selector)
+        self.splitter.addWidget(self.file_selector)
 
         # Conexión del botón "Abrir archivo"
         self.file_selector.archivo_seleccionado.connect(self.load_graph_from_file)
@@ -30,20 +45,43 @@ class MainWindow(QMainWindow):
         # Para luego reemplazarlo
         self.graph_view = None
 
+        # Área de log pequeña inicialmente
+        self.log_output = QTextEdit()
+        self.log_output.setReadOnly(True)
+        self.log_output.setPlaceholderText("Mensajes del sistema...")
+        self.log_output.setMaximumHeight(150)
+
+        self.splitter.addWidget(self.log_output)
+
+        # Ajustamos tamaños iniciales (primero grande, log pequeño)
+        self.splitter.setSizes([self.height() - 150, 150])
+
+        self.qt_handler = QtHandler(self.log)  # pasamos función directamente
+        formatter = logging.Formatter(
+            '%(asctime)s - %(levelname)s - %(message)s',
+            datefmt='%Y-%m-%d %H:%M:%S'
+        )
+        self.qt_handler.setFormatter(formatter)
+
+        logger = logging.getLogger()
+        logger.addHandler(self.qt_handler)
+        logger.setLevel(logging.DEBUG)
+
+        # Controlador de entrenamiento
+        self.training_controller = TrainingController(self)
+
+
     def create_new_graph(self):
         graph = nx.Graph()
         new_graph_view = MoleculeGraphView(graph)
 
-        # Eliminar selector si existe
-        self.clear_widget(self.file_selector)
-        self.file_selector = None
-
-        # Eliminar grafo anterior si existe
-        self.clear_widget(self.graph_view)
-        self.graph_view = None
+        old_widget = self.splitter.widget(0)
+        if old_widget:
+            old_widget.setParent(None)
 
         self.graph_view = new_graph_view
-        self.central_layout.addWidget(self.graph_view)
+
+        self.splitter.insertWidget(0, self.graph_view)
 
         QMessageBox.information(
             self,
@@ -63,20 +101,37 @@ class MainWindow(QMainWindow):
             return
 
         new_graph_view = MoleculeGraphView(graph)
-
-        self.clear_widget(self.file_selector)
-        self.file_selector = None
-
-        self.clear_widget(self.graph_view)
-        self.graph_view = None
-
+        old_widget = self.splitter.widget(0)
+        if old_widget:
+            old_widget.setParent(None)
 
         self.graph_view = new_graph_view
-        self.central_layout.addWidget(self.graph_view)
+
+        # ARREGLANDO: insertar nuevo grafo en índice 0 del splitter
+        self.splitter.insertWidget(0, self.graph_view)
+
 
     def clear_widget(self, widget):
+        # Obsoleto: no usar, ya que ahora el manejo es con el splitter
         # Elimina un widget del layout si existe
         if widget:
             self.central_layout.removeWidget(widget)
             widget.setParent(None)
+
+
+    def log(self, message):
+        scrollbar = self.log_output.verticalScrollBar()
+        # Proteger por si el scrollbar no está listo o tiene rango 0
+        if scrollbar.maximum() == 0:
+            # Simplemente append sin forzar scroll porque no hay scroll posible
+            self.log_output.append(message)
+            return
+
+        self.log_output.append(message)
+
+        cursor = self.log_output.textCursor()
+        cursor.movePosition(QTextCursor.MoveOperation.End)
+        self.log_output.setTextCursor(cursor)
+        self.log_output.ensureCursorVisible()
+
 

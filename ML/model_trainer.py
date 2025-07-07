@@ -1,8 +1,13 @@
+#model_trainer.py
+
 import torch
 import torch.nn.functional as F
 from torch_geometric.nn import GINConv, GINEConv, GATConv, global_add_pool
-from ML.torch_data_processing import read_targets, load_data_from_sdf, create_dataloader
+from ML.data_processing import read_targets, load_data_from_sdf, create_dataloader
 import os
+import logging
+logger = logging.getLogger(__name__)
+
 
 # ----------------------
 # Modelos GNN
@@ -112,7 +117,7 @@ def train(model, dataloader, device, epochs=20, lr=0.001):
             loss.backward()
             optimizer.step()
             total_loss += loss.item() * batch.num_graphs
-        print(f"Epoch {epoch:03d} | Loss: {total_loss / len(dataloader.dataset):.6f}")
+        logger.info(f"Epoch {epoch:03d} | Loss: {total_loss / len(dataloader.dataset):.6f}")
 
 
 def train_and_save_model(

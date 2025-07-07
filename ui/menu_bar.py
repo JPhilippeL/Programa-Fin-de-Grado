@@ -1,7 +1,7 @@
 from PySide6.QtWidgets import QMenuBar, QFileDialog, QMessageBox, QInputDialog
 from PySide6.QtGui import QAction
 from core.sdf_converter import graph_to_mol, save_graph_as_sdf
-from ML.torch_model_trainer import train_and_save_model
+from ML.model_trainer import train_and_save_model
 from ML.model_tester import cargar_y_predecir
 import os
 from rdkit import Chem
@@ -130,19 +130,22 @@ class MenuBar(QMenuBar):
 
         save_name, ok = QInputDialog.getText(self.parent, "Guardar modelo", "Nombre del archivo de modelo:")
         if not ok or not save_name:
+            QMessageBox.warning(self.parent, "Nombre inválido", "El nombre del archivo no puede estar vacío.")
             return
         save_path = f"modelos/{save_name}.pt"
 
-        try:
-            train_and_save_model(sdf_dir, target_file, modelo, epochs, save_path)
-            QMessageBox.information(self.parent, "Entrenamiento completo", f"Modelo guardado en:\n{save_path}")
-        except Exception as e:
-            QMessageBox.critical(self.parent, "Error durante el entrenamiento", f"Ha ocurrido un error:\n\n{str(e)}")
-            print(f"Error en entrenar IA: {str(e)}")
+        # En lugar de llamar directo a train_and_save_model, delegamos al controller
+        self.parent.training_controller.entrenar(
+            sdf_dir=sdf_dir,
+            target_file=target_file,
+            modelo=modelo,
+            epochs=epochs,
+            save_path=save_path
+        )
 
     def testear_modelo(self):
-        checkpoint_path, _ = QFileDialog.getOpenFileName(self.parent, "Seleccionar archivo de modelo (.pt)", "", "Modelos (*.pt)")
-        if not checkpoint_path:
+        model_path, _ = QFileDialog.getOpenFileName(self.parent, "Seleccionar archivo de modelo (.pt)", "", "Modelos (*.pt)")
+        if not model_path:
             return
 
         sdf_path, _ = QFileDialog.getOpenFileName(self.parent, "Seleccionar archivo SDF para predecir", "", "Archivos SDF (*.sdf)")
@@ -150,17 +153,19 @@ class MenuBar(QMenuBar):
             return
 
         try:
-            pred, target_name = cargar_y_predecir(checkpoint_path, sdf_path)
+            pred, target_name = cargar_y_predecir(model_path, sdf_path)
 
+            model_name = os.path.basename(model_path)
             sdf_name = os.path.basename(sdf_path)
-            msg = f"Predicción de '{target_name}' en la molécula '{sdf_name}': {pred:.4f}"
 
+            msg = f"Predicción de '{target_name}' con el modelo '{model_name}' en la molécula '{sdf_name}': {pred:.4f}"
             QMessageBox.information(self.parent, "Predicción", msg)
-            print(msg)
+            self.parent.log(msg)
+
 
         except Exception as e:
             QMessageBox.critical(self.parent, "Error en predicción", f"No se pudo realizar la predicción:\n\n{str(e)}")
-            print(f"Error en testear modelo: {str(e)}")
+            self.parent.log(f"Error en testear modelo: {str(e)}")
 
 
 
