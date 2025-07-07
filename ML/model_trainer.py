@@ -2,7 +2,8 @@
 
 import torch
 import torch.nn.functional as F
-from torch_geometric.nn import GINConv, GINEConv, GATConv, global_add_pool
+from torch_geometric.nn import GINConv, GINEConv, GATConv, global_add_pool, TransformerConv
+
 from ML.data_processing import read_targets, load_data_from_sdf, create_dataloader
 import os
 import logging
@@ -81,6 +82,31 @@ class GATNet(torch.nn.Module):
         x = global_add_pool(x, batch)
         out = self.lin(x)
         return out.squeeze()
+    
+class GraphTransformerNet(torch.nn.Module):
+    def __init__(self, input_dim, hidden_dim=64, num_layers=3, heads=4, edge_dim=1):
+        super().__init__()
+        self.convs = torch.nn.ModuleList()
+        for i in range(num_layers):
+            in_channels = input_dim if i == 0 else hidden_dim * heads
+            conv = TransformerConv(
+                in_channels=in_channels,
+                out_channels=hidden_dim,
+                heads=heads,
+                edge_dim=edge_dim,
+                concat=True  # concatena las cabezas
+            )
+            self.convs.append(conv)
+        self.lin = torch.nn.Linear(hidden_dim * heads, 1)
+
+    def forward(self, x, edge_index, edge_attr, batch):
+        for conv in self.convs:
+            x = conv(x, edge_index, edge_attr)
+            x = F.relu(x)
+        x = global_add_pool(x, batch)
+        out = self.lin(x)
+        return out.squeeze()
+
 
 # ----------------------
 # Función para crear modelo según elección
@@ -93,6 +119,8 @@ def create_model(model_name, input_dim, edge_dim=1):
         return GINENet(input_dim=input_dim, edge_dim=edge_dim)
     elif model_name == "GAT":
         return GATNet(input_dim=input_dim)
+    elif model_name == "GraphTransformer":
+        return GraphTransformerNet(input_dim=input_dim, edge_dim=edge_dim)
     else:
         raise ValueError(f"Modelo desconocido: {model_name}")
 

@@ -119,7 +119,7 @@ class MenuBar(QMenuBar):
         if not target_file:
             return
 
-        modelos = ["GIN", "GINE", "GAT"]
+        modelos = ["GIN", "GINE", "GAT", "GraphTransformer"]
         modelo, ok = QInputDialog.getItem(self.parent, "Seleccionar modelo", "Modelo:", modelos, 0, False)
         if not ok:
             return

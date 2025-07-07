@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QMainWindow, QFileDialog, QWidget, QVBoxLayout, QMessageBox, QSplitter
+from PySide6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QMessageBox, QSplitter
 from PySide6.QtCore import Qt
 from ui.graph_view import MoleculeGraphView
 from core.sdf_converter import parse_sdf
@@ -7,7 +7,6 @@ from ui.menu_bar import MenuBar
 from PySide6.QtWidgets import QTextEdit
 from PySide6.QtGui import QTextCursor
 import networkx as nx
-from datetime import datetime
 import logging
 from ui.logger import QtHandler
 from ML.training_controller import TrainingController
