@@ -75,11 +75,8 @@ class MainWindow(QMainWindow):
         graph = nx.Graph()
         new_graph_view = MoleculeGraphView(graph)
 
-        old_widget = self.splitter.widget(0)
-        if old_widget:
-            old_widget.setParent(None)
-
         self.graph_view = new_graph_view
+        self.clear_splitter()
 
         self.splitter.insertWidget(0, self.graph_view)
 
@@ -101,22 +98,16 @@ class MainWindow(QMainWindow):
             return
 
         new_graph_view = MoleculeGraphView(graph)
-        old_widget = self.splitter.widget(0)
-        if old_widget:
-            old_widget.setParent(None)
+        self.clear_splitter()
 
         self.graph_view = new_graph_view
 
-        # ARREGLANDO: insertar nuevo grafo en índice 0 del splitter
         self.splitter.insertWidget(0, self.graph_view)
 
 
-    def clear_widget(self, widget):
-        # Obsoleto: no usar, ya que ahora el manejo es con el splitter
-        # Elimina un widget del layout si existe
-        if widget:
-            self.central_layout.removeWidget(widget)
-            widget.setParent(None)
+    def clear_splitter(self):
+        widget = self.splitter.widget(0)
+        widget.setParent(None)
 
 
     def log(self, message):

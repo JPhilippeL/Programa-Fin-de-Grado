@@ -12,7 +12,7 @@ def parse_sdf(file_path):
     if mol is None:
         raise ValueError("No se pudo leer una molécula válida desde el archivo SDF.")
 
-    AllChem.Compute2DCoords(mol)  # asegura posiciones 2D
+    AllChem.Compute2DCoords(mol)
     graph = nx.Graph()
 
     for atom in mol.GetAtoms():
@@ -20,8 +20,7 @@ def parse_sdf(file_path):
         pos = mol.GetConformer().GetAtomPosition(idx)
         graph.add_node(str(idx), 
                element=atom.GetSymbol(), 
-               pos=(pos.x * 50, -pos.y * 50))  # escalar y reflejar eje Y si lo deseas
-
+               pos=(pos.x * 50, -pos.y * 50))   # Multiplicamos por 50 para escalar las coordenadas
     for bond in mol.GetBonds():
         start = bond.GetBeginAtomIdx()
         end = bond.GetEndAtomIdx()

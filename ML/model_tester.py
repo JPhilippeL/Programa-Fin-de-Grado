@@ -34,7 +34,7 @@ def cargar_y_predecir(checkpoint_path, sdf_path):
     data = mol_to_graph_data_obj(mol)
     data = data.to(device)
 
-    # Predecir (suponiendo que el modelo devuelve un tensor con la predicción)
+    # Predecir
     with torch.no_grad():
         batch = torch.zeros(data.num_nodes, dtype=torch.long, device=data.x.device)  # todos nodos del mismo grafo
         out = model(data.x, data.edge_index, data.edge_attr, batch)

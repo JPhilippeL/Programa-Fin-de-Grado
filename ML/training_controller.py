@@ -39,7 +39,7 @@ class TrainingController:
         self.parent.log(f"Error en entrenamiento: {msg}")
 
 class TrainerWorker(QObject):
-    log = Signal(str)  # <-- Declarás la señal 'log' que emitirá strings
+    log = Signal(str)
     finished = Signal(str)  # Ruta del modelo guardado
     error = Signal(str)
 

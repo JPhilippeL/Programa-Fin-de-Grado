@@ -57,16 +57,8 @@ def read_targets(targets_file):
 
 
 def load_data_from_sdf(sdf_dir, target_dict):
-    """
-    Lee los archivos SDF de un directorio y los convierte a objetos Data con sus targets.
-    
-    Parámetros:
-        sdf_dir (str): Ruta al directorio con archivos .sdf
-        target_dict (dict): Diccionario {mol_id: target}
-        
-    Retorna:
-        data_list (list): Lista de objetos Data listos para PyG
-    """
+    #Lee los archivos SDF de un directorio y los convierte a objetos Data con sus targets.
+
     data_list = []
     for filename in sorted(os.listdir(sdf_dir)):
         if filename.endswith('.sdf'):
@@ -90,15 +82,4 @@ def load_data_from_sdf(sdf_dir, target_dict):
 
 
 def create_dataloader(data_list, batch_size=32, shuffle=True):
-    """
-    Crea un DataLoader de PyTorch Geometric para iterar por batches.
-    
-    Parámetros:
-        data_list (list): Lista de objetos Data
-        batch_size (int): Tamaño del batch
-        shuffle (bool): Si se mezclan los datos en cada epoch
-        
-    Retorna:
-        DataLoader
-    """
     return DataLoader(data_list, batch_size=batch_size, shuffle=shuffle)
