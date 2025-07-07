@@ -5,6 +5,8 @@ from ML.model_trainer import train_and_save_model
 from ML.model_tester import cargar_y_predecir
 import os
 from rdkit import Chem
+import logging
+logger = logging.getLogger(__name__)
 
 class MenuBar(QMenuBar):
     def __init__(self, parent):
@@ -78,6 +80,8 @@ class MenuBar(QMenuBar):
 
         try:
             save_graph_as_sdf(graph, file_path)
+            mensaje = f"Archivo guardado correctamente en: {file_path}"
+            logger.info(mensaje)
         except Exception as e:
             QMessageBox.critical(
                 self.parent,
@@ -88,27 +92,20 @@ class MenuBar(QMenuBar):
 
     def verificar_molecula(self):
         if not self.parent.graph_view:
-            QMessageBox.warning(
-                self.parent,
-                "Verificación",
-                "No hay una molécula cargada para verificar."
-            )
+            mensaje = "No hay una molécula cargada para verificar."
+            QMessageBox.warning(self.parent, "Verificación", mensaje)
             return
 
         try:
             mol = graph_to_mol(self.parent.graph_view.scene().graph)
             Chem.SanitizeMol(mol)
-            QMessageBox.information(
-                self.parent,
-                "Verificación Exitosa",
-                "La molécula no contiene errores químicos detectables."
-            )
+            mensaje = "La molécula no contiene errores químicos detectables."
+            QMessageBox.information(self.parent, "Verificación Exitosa", mensaje)
+            logger.info(mensaje)
         except Exception as e:
-            QMessageBox.critical(
-                self.parent,
-                "Error de Verificación",
-                f"Se detectaron errores químicos en la molécula:\n\n{str(e)}"
-            )
+            mensaje = f"Se detectaron errores químicos en la molécula:\n\n{str(e)}"
+            QMessageBox.critical(self.parent, "Error de Verificación", mensaje)
+            logger.info(mensaje)
 
     def entrenar_ia(self):
         sdf_dir = QFileDialog.getExistingDirectory(self.parent, "Seleccionar carpeta con archivos SDF")
@@ -160,12 +157,12 @@ class MenuBar(QMenuBar):
 
             msg = f"Predicción de '{target_name}' con el modelo '{model_name}' en la molécula '{sdf_name}': {pred:.4f}"
             QMessageBox.information(self.parent, "Predicción", msg)
-            self.parent.log(msg)
+            logger.info(msg)
 
 
         except Exception as e:
             QMessageBox.critical(self.parent, "Error en predicción", f"No se pudo realizar la predicción:\n\n{str(e)}")
-            self.parent.log(f"Error en testear modelo: {str(e)}")
+            logger.info(f"Error en testear modelo: {str(e)}")
 
 
 

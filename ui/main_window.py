@@ -16,7 +16,6 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Editor Molecular")
-        self.setWindowIcon(QIcon("assets/icono.png"))
         self.resize(900, 600)
 
         # Contenedor central permanente
