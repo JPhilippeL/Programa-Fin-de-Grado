@@ -35,24 +35,28 @@ class GINNet(torch.nn.Module):
 class GINENet(torch.nn.Module):
     def __init__(self, input_dim, edge_dim=1, hidden_dim=64, num_layers=3):
         super().__init__()
+        self.node_encoder = torch.nn.Linear(input_dim, hidden_dim)
+
         self.convs = torch.nn.ModuleList()
-        for i in range(num_layers):
-            nn_edge = torch.nn.Sequential(
-                torch.nn.Linear(edge_dim, hidden_dim),
+        for _ in range(num_layers):
+            mlp = torch.nn.Sequential(
+                torch.nn.Linear(hidden_dim, hidden_dim),
                 torch.nn.ReLU(),
                 torch.nn.Linear(hidden_dim, hidden_dim)
             )
-            conv = GINEConv(nn_edge, edge_dim)
+            conv = GINEConv(mlp, edge_dim=edge_dim)
             self.convs.append(conv)
-        self.lin = torch.nn.Linear(hidden_dim, 1)
+
+        self.readout = global_add_pool
+        self.output = torch.nn.Linear(hidden_dim, 1)
 
     def forward(self, x, edge_index, edge_attr, batch):
+        x = self.node_encoder(x)
         for conv in self.convs:
             x = conv(x, edge_index, edge_attr)
             x = F.relu(x)
-        x = global_add_pool(x, batch)
-        out = self.lin(x)
-        return out.squeeze()
+        x = self.readout(x, batch)
+        return self.output(x).squeeze()
 
 
 class GATNet(torch.nn.Module):
