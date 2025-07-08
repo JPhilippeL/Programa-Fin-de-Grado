@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import QGraphicsView
 from PySide6.QtGui import QPainter
-from ui.graph_scene import MoleculeGraphScene
+from ui.graph.graph_scene import MoleculeGraphScene
 
 class MoleculeGraphView(QGraphicsView):
     def __init__(self, graph):

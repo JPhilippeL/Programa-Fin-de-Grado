@@ -1,7 +1,7 @@
 from PySide6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QMessageBox, QSplitter
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QIcon
-from ui.graph_view import MoleculeGraphView
+from ui.graph.graph_view import MoleculeGraphView
 from core.sdf_converter import parse_sdf
 from ui.file_selector import FileSelector
 from ui.menu_bar import MenuBar

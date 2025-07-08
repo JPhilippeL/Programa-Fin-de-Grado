@@ -183,5 +183,5 @@ def train_and_save_model(
     os.makedirs(os.path.dirname(save_path), exist_ok=True)
     torch.save(checkpoint, save_path)
 
-    return save_path  # opcional, para confirmar ruta
+    return save_path
 

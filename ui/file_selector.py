@@ -14,8 +14,8 @@ class FileSelector(QWidget):
 
         self.label = QLabel("Por favor, selecciona un archivo SDF para cargar.")
         font = QFont()
-        font.setPointSize(16)  # tamaño de fuente más grande, podés cambiar el número
-        font.setBold(True)     # opcional, para que sea negrita
+        font.setPointSize(16)
+        font.setBold(True)     
         self.label.setFont(font)
         self.label.setAlignment(Qt.AlignCenter)
         self.layout.addWidget(self.label)

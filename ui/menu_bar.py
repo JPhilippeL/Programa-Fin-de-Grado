@@ -100,12 +100,11 @@ class MenuBar(QMenuBar):
             mol = graph_to_mol(self.parent.graph_view.scene().graph)
             Chem.SanitizeMol(mol)
             mensaje = "La molécula no contiene errores químicos detectables."
-            QMessageBox.information(self.parent, "Verificación Exitosa", mensaje)
             logger.info(mensaje)
         except Exception as e:
-            mensaje = f"Se detectaron errores químicos en la molécula:\n\n{str(e)}"
-            QMessageBox.critical(self.parent, "Error de Verificación", mensaje)
-            logger.info(mensaje)
+            mensaje = f"Se detectaron errores químicos en la molécula:\n{str(e)}"
+            #QMessageBox.critical(self.parent, "Error de Verificación", mensaje)
+            logger.error(mensaje)
 
     def entrenar_ia(self):
         sdf_dir = QFileDialog.getExistingDirectory(self.parent, "Seleccionar carpeta con archivos SDF")
@@ -162,7 +161,7 @@ class MenuBar(QMenuBar):
 
         except Exception as e:
             QMessageBox.critical(self.parent, "Error en predicción", f"No se pudo realizar la predicción:\n\n{str(e)}")
-            logger.info(f"Error en testear modelo: {str(e)}")
+            logger.error(f"Error en testear modelo: {str(e)}")
 
 
 

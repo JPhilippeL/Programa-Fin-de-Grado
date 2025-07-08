@@ -2,8 +2,8 @@ from PySide6.QtWidgets import QGraphicsScene, QInputDialog, QMessageBox, QGraphi
 from PySide6.QtGui import QColor, QPen, Qt, QTransform
 from PySide6.QtCore import QPointF
 from ui.utils import BACKGROUND_COLOR
-from ui.edge_item import EdgeItem
-from ui.node_item import NodeItem
+from ui.graph.edge_item import EdgeItem
+from ui.graph.node_item import NodeItem
 from core.graph_manager import GraphManager
 
 class MoleculeGraphScene(QGraphicsScene):

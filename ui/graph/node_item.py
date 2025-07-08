@@ -2,7 +2,6 @@ from PySide6.QtWidgets import QGraphicsEllipseItem, QGraphicsTextItem, QGraphics
 from PySide6.QtGui import QBrush, QColor, QFont
 from PySide6.QtCore import Signal, QObject, Qt
 from ui.utils import ATOM_COLORS, ATOM_TEXT_COLORS, ATOM_COLORS_DEFAULT, ATOM_TEXT_COLORS_DEFAULT
-from core.graph_manager import GraphManager
 
 NODE_RADIUS = 20
 
