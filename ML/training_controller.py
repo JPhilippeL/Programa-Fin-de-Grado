@@ -6,7 +6,7 @@ from ML.model_trainer import train_and_save_model
 
 class TrainingController:
     def __init__(self, parent):
-        self.parent = parent  # Puede ser MainWindow
+        self.parent = parent
         self.thread = None
         self.worker = None
 
@@ -64,7 +64,7 @@ class TrainingController:
 
 class TrainerWorker(QObject):
     log = Signal(str)
-    finished = Signal(str)  # Ruta del modelo guardado
+    finished = Signal(str)
     error = Signal(str)
 
     def __init__(
@@ -104,8 +104,8 @@ class TrainerWorker(QObject):
                 batch_size=self.batch_size,
                 lr=self.lr,
                 valid_split=self.valid_split,
-                hidden_dim=self.hidden_dim,         # <---
-                num_layers=self.num_layers          # <---
+                hidden_dim=self.hidden_dim,
+                num_layers=self.num_layers
             )
             self.finished.emit(path)
         except Exception as e:

@@ -76,7 +76,6 @@ class MoleculeGraphScene(QGraphicsScene):
             del self.node_items[node_id]
 
     def _get_node_id_from_item(self, item):
-        # Asume que puedes mapear el item a su id
         for node_id, node_item in self.node_items.items():
             if node_item == item:
                 return node_id

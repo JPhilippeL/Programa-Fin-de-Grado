@@ -5,7 +5,7 @@ from ui.main_window import MainWindow
 import sys
 
 app = QApplication(sys.argv)
-app.setStyle("Fusion")  # Establecer el estilo de la aplicación
+app.setStyle("Fusion")
 app.setApplicationName("Editor Molecular")
 app.setWindowIcon(QIcon("assets/icono.png"))
 window = MainWindow()

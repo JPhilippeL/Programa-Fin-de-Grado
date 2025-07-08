@@ -6,10 +6,10 @@ from ui.utils import ATOM_COLORS, ATOM_TEXT_COLORS, ATOM_COLORS_DEFAULT, ATOM_TE
 NODE_RADIUS = 20
 
 class NodeItem(QGraphicsEllipseItem, QObject):
-    modify_node_requested = Signal(object)  # self
-    delete_node_requested = Signal(object)  # self
-    add_edge_requested = Signal(object)  # self
-    position_changed = Signal(object)  # self
+    modify_node_requested = Signal(object)
+    delete_node_requested = Signal(object)
+    add_edge_requested = Signal(object)
+    position_changed = Signal(object)  
     
     def __init__(self, x, y, radius, element, node_id):
         QObject.__init__(self)

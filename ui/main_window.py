@@ -41,10 +41,10 @@ class MainWindow(QMainWindow):
         # Conexión del botón "Abrir archivo"
         self.file_selector.archivo_seleccionado.connect(self.load_graph_from_file)
 
-        # Para luego reemplazarlo
+        # Luego reemplazarlo
         self.graph_view = None
 
-        # Área de log pequeña inicialmente
+        # Área de log pequeña 
         self.log_output = QTextEdit()
         self.log_output.setReadOnly(True)
         self.log_output.setPlaceholderText("Mensajes del sistema...")
@@ -52,7 +52,7 @@ class MainWindow(QMainWindow):
 
         self.splitter.addWidget(self.log_output)
 
-        # Ajustamos tamaños iniciales (primero grande, log pequeño)
+        # Ajustamos tamaños iniciales
         self.splitter.setSizes([self.height() - 150, 150])
 
         self.qt_handler = QtHandler(self.log)  # pasamos función directamente
@@ -113,7 +113,6 @@ class MainWindow(QMainWindow):
         scrollbar = self.log_output.verticalScrollBar()
         # Proteger por si el scrollbar no está listo o tiene rango 0
         if scrollbar.maximum() == 0:
-            # Simplemente append sin forzar scroll porque no hay scroll posible
             self.log_output.append(message)
             return
 

@@ -17,7 +17,6 @@ logger = logging.getLogger(__name__)
 class GINNet(torch.nn.Module):
     def __init__(self, input_dim, hidden_dim=64, num_layers=3):
         super().__init__()
-        # Construimos capas GIN con MLP interno
         self.convs = torch.nn.ModuleList()
         for i in range(num_layers):
             mlp = torch.nn.Sequential(
@@ -27,13 +26,13 @@ class GINNet(torch.nn.Module):
             )
             conv = GINConv(mlp)
             self.convs.append(conv)
-        self.lin = torch.nn.Linear(hidden_dim, 1)  # Regresión
+        self.lin = torch.nn.Linear(hidden_dim, 1)
 
     def forward(self, x, edge_index, edge_attr, batch):
         for conv in self.convs:
             x = conv(x, edge_index)
             x = F.relu(x)
-        x = global_add_pool(x, batch)  # Pooling global por grafo
+        x = global_add_pool(x, batch)
         out = self.lin(x)
         return out.squeeze()
 
@@ -94,7 +93,7 @@ class GraphTransformerNet(torch.nn.Module):
                 out_channels=hidden_dim,
                 heads=heads,
                 edge_dim=edge_dim,
-                concat=True  # concatena las cabezas
+                concat=True
             )
             self.convs.append(conv)
         self.lin = torch.nn.Linear(hidden_dim * heads, 1)
@@ -132,9 +131,8 @@ def create_model(model_name, input_dim, edge_dim=1, hidden_dim=64, num_layers=3)
 def train(model, train_loader, device, epochs=20, lr=0.001, val_loader=None):
     model.to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
-    criterion = torch.nn.MSELoss()  # Regresión
+    criterion = torch.nn.MSELoss()
 
-    #model.train()
     for epoch in range(1, epochs + 1):
         model.train()
         total_loss = 0

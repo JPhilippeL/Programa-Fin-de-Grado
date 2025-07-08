@@ -4,9 +4,9 @@ from PySide6.QtCore import Signal, QObject, Qt
 
 
 class EdgeItem(QGraphicsItemGroup, QObject):
-    modify_edge_requested = Signal(object)  # self
-    delete_edge_requested = Signal(object)  # self
-    add_node_requested = Signal(object)  # self
+    modify_edge_requested = Signal(object)
+    delete_edge_requested = Signal(object)
+    add_node_requested = Signal(object)  
 
     def __init__(self, source_node, target_node, bond_type):
         QObject.__init__(self)
@@ -43,7 +43,7 @@ class EdgeItem(QGraphicsItemGroup, QObject):
 
             line.setPen(pen)
             line.setZValue(1)
-            line.offset = offset  # desplazamiento perpendicular
+            line.offset = offset
             self.addToGroup(line)
             self.lines.append(line)
 

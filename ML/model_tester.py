@@ -16,8 +16,8 @@ def cargar_y_predecir(checkpoint_path, sdf_path):
     model_type = checkpoint['model_type']
     input_dim = checkpoint['input_dim']
     edge_dim = checkpoint['edge_dim']
-    hidden_dim = checkpoint.get('hidden_dim', 64)  # valor por defecto si falta
-    num_layers = checkpoint.get('num_layers', 3)   # valor por defecto si falta
+    hidden_dim = checkpoint.get('hidden_dim', 64)
+    num_layers = checkpoint.get('num_layers', 3)
     target_name = checkpoint.get('target_name', 'target')
 
     # Crear modelo con los parámetros guardados

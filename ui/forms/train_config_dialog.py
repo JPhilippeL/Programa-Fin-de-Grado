@@ -80,7 +80,7 @@ class TrainConfigDialog(QDialog):
             self.target_file_input.setText(file)
 
     def accept(self):
-        # Guardar para próxima sesión
+        # Guardar para próxima
         TrainConfigDialog.session_defaults["sdf_dir"] = self.sdf_path_input.text()
         TrainConfigDialog.session_defaults["target_file"] = self.target_file_input.text()
         super().accept()

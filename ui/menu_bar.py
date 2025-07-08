@@ -14,7 +14,6 @@ class MenuBar(QMenuBar):
     def __init__(self, parent):
         super().__init__(parent)
         self.parent = parent  # Referencia a MainWindow
-        self.verificacion_al_guardar_activada = True  # Activada por defecto
 
         #Menu de Archivo    
         archivo_menu = self.addMenu("Archivo")
@@ -72,7 +71,7 @@ class MenuBar(QMenuBar):
 
     def guardar_archivo(self):
         if not self.parent.graph_view:
-            return  # No hay grafo cargado
+            return
 
         file_path, _ = QFileDialog.getSaveFileName(
             self.parent,
