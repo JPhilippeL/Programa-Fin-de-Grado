@@ -34,6 +34,14 @@ class TrainConfigDialog(QDialog):
         self.valid_split_input.setSingleStep(0.05)
         self.valid_split_input.setValue(0.2)
 
+        self.hidden_dim_input = QSpinBox()
+        self.hidden_dim_input.setRange(8, 1024)
+        self.hidden_dim_input.setValue(64)  # valor por defecto
+
+        self.num_layers_input = QSpinBox()
+        self.num_layers_input.setRange(1, 10)
+        self.num_layers_input.setValue(3)  # valor por defecto
+
         self.save_name_input = QLineEdit()
 
         # Agregar campos al formulario
@@ -42,6 +50,8 @@ class TrainConfigDialog(QDialog):
         form_layout.addRow("Batch size:", self.batch_input)
         form_layout.addRow("Learning rate:", self.lr_input)
         form_layout.addRow("Porcentaje validación:", self.valid_split_input)
+        form_layout.addRow("Hidden dim:", self.hidden_dim_input)
+        form_layout.addRow("Número de capas:", self.num_layers_input)
         form_layout.addRow("Nombre del modelo:", self.save_name_input)
 
         layout.addLayout(form_layout)
@@ -55,11 +65,15 @@ class TrainConfigDialog(QDialog):
         self.setLayout(layout)
 
     def get_values(self):
-        return {
+        values = {
             "modelo": self.model_select.currentText(),
             "epochs": self.epochs_input.value(),
             "batch_size": self.batch_input.value(),
             "lr": self.lr_input.value(),
             "valid_split": self.valid_split_input.value(),
-            "save_name": self.save_name_input.text()
+            "save_name": self.save_name_input.text(),
+            # Nuevos parámetros:
+            "hidden_dim": self.hidden_dim_input.value(),
+            "num_layers": self.num_layers_input.value(),
         }
+        return values

@@ -10,12 +10,31 @@ class TrainingController:
         self.thread = None
         self.worker = None
 
-    def entrenar(self, sdf_dir, target_file, modelo, epochs, batch_size, lr, valid_split, save_path):
+    def entrenar(
+    self,
+    sdf_dir,
+    target_file,
+    modelo,
+    epochs,
+    batch_size,
+    lr,
+    valid_split,
+    save_path,
+    hidden_dim=64,   
+    num_layers=3       
+    ):
         self.thread = QThread()
         self.worker = TrainerWorker(
-            sdf_dir, target_file, modelo, epochs,
-            save_path, batch_size=batch_size,
-            lr=lr, valid_split=valid_split
+            sdf_dir,
+            target_file,
+            modelo,
+            epochs,
+            save_path,
+            batch_size=batch_size,
+            lr=lr,
+            valid_split=valid_split,
+            hidden_dim=hidden_dim,     
+            num_layers=num_layers      
         )
 
         self.worker.moveToThread(self.thread)
@@ -48,7 +67,19 @@ class TrainerWorker(QObject):
     finished = Signal(str)  # Ruta del modelo guardado
     error = Signal(str)
 
-    def __init__(self, sdf_dir, target_file, modelo_nombre, epochs, save_path, batch_size=32, lr=0.001, valid_split=0.2):
+    def __init__(
+        self,
+        sdf_dir,
+        target_file,
+        modelo_nombre,
+        epochs,
+        save_path,
+        batch_size=32,
+        lr=0.001,
+        valid_split=0.2,
+        hidden_dim=64,
+        num_layers=3
+    ):
         super().__init__()
         self.sdf_dir = sdf_dir
         self.target_file = target_file
@@ -58,6 +89,8 @@ class TrainerWorker(QObject):
         self.batch_size = batch_size
         self.lr = lr
         self.valid_split = valid_split
+        self.hidden_dim = hidden_dim
+        self.num_layers = num_layers
 
 
     def run(self):
@@ -70,7 +103,9 @@ class TrainerWorker(QObject):
                 save_path=self.save_path,
                 batch_size=self.batch_size,
                 lr=self.lr,
-                valid_split=self.valid_split  # <- Nuevo
+                valid_split=self.valid_split,
+                hidden_dim=self.hidden_dim,         # <---
+                num_layers=self.num_layers          # <---
             )
             self.finished.emit(path)
         except Exception as e:

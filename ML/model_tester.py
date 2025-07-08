@@ -12,14 +12,22 @@ def cargar_y_predecir(checkpoint_path, sdf_path):
     # Cargar checkpoint
     checkpoint = torch.load(checkpoint_path, map_location=device)
 
-    # Recuperar metadatos
+     # Recuperar metadatos
     model_type = checkpoint['model_type']
     input_dim = checkpoint['input_dim']
     edge_dim = checkpoint['edge_dim']
+    hidden_dim = checkpoint.get('hidden_dim', 64)  # valor por defecto si falta
+    num_layers = checkpoint.get('num_layers', 3)   # valor por defecto si falta
     target_name = checkpoint.get('target_name', 'target')
 
     # Crear modelo con los parámetros guardados
-    model = create_model(model_type, input_dim, edge_dim)
+    model = create_model(
+        model_type,
+        input_dim=input_dim,
+        edge_dim=edge_dim,
+        hidden_dim=hidden_dim,
+        num_layers=num_layers
+    )
     model.load_state_dict(checkpoint['model_state_dict'])
     model.to(device)
     model.eval()

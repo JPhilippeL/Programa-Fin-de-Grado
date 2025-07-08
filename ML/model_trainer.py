@@ -112,17 +112,18 @@ class GraphTransformerNet(torch.nn.Module):
 # Función para crear modelo según elección
 # ----------------------
 
-def create_model(model_name, input_dim, edge_dim=1):
+def create_model(model_name, input_dim, edge_dim=1, hidden_dim=64, num_layers=3):
     if model_name == "GIN":
-        return GINNet(input_dim=input_dim)
+        return GINNet(input_dim=input_dim, hidden_dim=hidden_dim, num_layers=num_layers)
     elif model_name == "GINE":
-        return GINENet(input_dim=input_dim, edge_dim=edge_dim)
+        return GINENet(input_dim=input_dim, edge_dim=edge_dim, hidden_dim=hidden_dim, num_layers=num_layers)
     elif model_name == "GAT":
-        return GATNet(input_dim=input_dim)
+        return GATNet(input_dim=input_dim, hidden_dim=hidden_dim, num_layers=num_layers)
     elif model_name == "GraphTransformer":
-        return GraphTransformerNet(input_dim=input_dim, edge_dim=edge_dim)
+        return GraphTransformerNet(input_dim=input_dim, hidden_dim=hidden_dim, num_layers=num_layers)
     else:
         raise ValueError(f"Modelo desconocido: {model_name}")
+
 
 # ----------------------
 # Función para entrenar modelo
@@ -174,7 +175,9 @@ def train_and_save_model(
     save_path,
     batch_size=32,
     lr=0.001,
-    valid_split=0.2
+    valid_split=0.2,
+    hidden_dim=64,
+    num_layers=3
 ):
     target_dict = read_targets(target_file)
     targetname = os.path.splitext(os.path.basename(target_file))[0]
@@ -189,7 +192,7 @@ def train_and_save_model(
     input_dim = data_list[0].x.shape[1]
     edge_dim = data_list[0].edge_attr.shape[1]
     
-    model = create_model(modelo_nombre, input_dim, edge_dim)
+    model = create_model(modelo_nombre, input_dim, edge_dim, hidden_dim=hidden_dim, num_layers=num_layers)
 
     train(model, train_loader, device, epochs=epochs, lr=lr, val_loader=val_loader)
 
@@ -200,7 +203,13 @@ def train_and_save_model(
         'edge_dim': edge_dim,
         'epochs_trained': epochs,
         'target_name': targetname,
+        'hidden_dim': hidden_dim,
+        'num_layers': num_layers,
+        'batch_size': batch_size,
+        'learning_rate': lr,
+        'valid_split': valid_split,
     }
+
 
     os.makedirs(os.path.dirname(save_path), exist_ok=True)
     torch.save(checkpoint, save_path)

@@ -137,7 +137,9 @@ class MenuBar(QMenuBar):
             batch_size=config["batch_size"],
             lr=config["lr"],
             valid_split=config["valid_split"],
-            save_path=save_path
+            save_path=save_path,
+            hidden_dim=config["hidden_dim"],
+            num_layers=config["num_layers"]
         )
 
     def testear_modelo(self):
