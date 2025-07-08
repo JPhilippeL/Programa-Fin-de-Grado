@@ -1,10 +1,10 @@
-from PySide6.QtWidgets import QMenuBar, QFileDialog, QMessageBox, QInputDialog
+from PySide6.QtWidgets import QMenuBar, QFileDialog, QMessageBox, QInputDialog, QDialog
 from PySide6.QtGui import QAction
 from core.sdf_converter import graph_to_mol, save_graph_as_sdf
-from ML.model_trainer import train_and_save_model
 from ML.model_tester import cargar_y_predecir
 import os
 from rdkit import Chem
+from ui.forms.train_config_dialog import TrainConfigDialog
 import logging
 logger = logging.getLogger(__name__)
 
@@ -111,31 +111,32 @@ class MenuBar(QMenuBar):
         if not sdf_dir:
             return
 
-        target_file, _ = QFileDialog.getOpenFileName(self.parent, "Seleccionar archivo de propiedades", "", "Archivo de texto (*.txt)")
+        target_file, _ = QFileDialog.getOpenFileName(
+            self.parent, "Seleccionar archivo de propiedades", "", "Archivo de texto (*.txt)"
+        )
         if not target_file:
             return
 
-        modelos = ["GIN", "GINE", "GAT", "GraphTransformer"]
-        modelo, ok = QInputDialog.getItem(self.parent, "Seleccionar modelo", "Modelo:", modelos, 0, False)
-        if not ok:
+        # Mostrar formulario
+        dialog = TrainConfigDialog(self)
+        if dialog.exec_() != QDialog.Accepted:
             return
 
-        epochs, ok = QInputDialog.getInt(self.parent, "Épocas de entrenamiento", "Número de épocas:", 20, 1, 10000)
-        if not ok:
-            return
-
-        save_name, ok = QInputDialog.getText(self.parent, "Guardar modelo", "Nombre del archivo de modelo:")
-        if not ok or not save_name:
+        config = dialog.get_values()
+        if not config["save_name"]:
             QMessageBox.warning(self.parent, "Nombre inválido", "El nombre del archivo no puede estar vacío.")
             return
-        save_path = f"modelos/{save_name}.pt"
 
-        # En lugar de llamar directo a train_and_save_model, delegamos al controller
+        save_path = f"modelos/{config['save_name']}.pt"
+
         self.parent.training_controller.entrenar(
             sdf_dir=sdf_dir,
             target_file=target_file,
-            modelo=modelo,
-            epochs=epochs,
+            modelo=config["modelo"],
+            epochs=config["epochs"],
+            batch_size=config["batch_size"],
+            lr=config["lr"],
+            valid_split=config["valid_split"],
             save_path=save_path
         )
 

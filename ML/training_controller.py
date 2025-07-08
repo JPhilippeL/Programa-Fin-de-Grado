@@ -10,9 +10,14 @@ class TrainingController:
         self.thread = None
         self.worker = None
 
-    def entrenar(self, sdf_dir, target_file, modelo, epochs, save_path):
+    def entrenar(self, sdf_dir, target_file, modelo, epochs, batch_size, lr, valid_split, save_path):
         self.thread = QThread()
-        self.worker = TrainerWorker(sdf_dir, target_file, modelo, epochs, save_path)
+        self.worker = TrainerWorker(
+            sdf_dir, target_file, modelo, epochs,
+            save_path, batch_size=batch_size,
+            lr=lr, valid_split=valid_split
+        )
+
         self.worker.moveToThread(self.thread)
 
         # Conectar señales
@@ -43,7 +48,7 @@ class TrainerWorker(QObject):
     finished = Signal(str)  # Ruta del modelo guardado
     error = Signal(str)
 
-    def __init__(self, sdf_dir, target_file, modelo_nombre, epochs, save_path, batch_size=32, lr=0.001):
+    def __init__(self, sdf_dir, target_file, modelo_nombre, epochs, save_path, batch_size=32, lr=0.001, valid_split=0.2):
         super().__init__()
         self.sdf_dir = sdf_dir
         self.target_file = target_file
@@ -52,6 +57,8 @@ class TrainerWorker(QObject):
         self.save_path = save_path
         self.batch_size = batch_size
         self.lr = lr
+        self.valid_split = valid_split
+
 
     def run(self):
         try:
@@ -62,9 +69,11 @@ class TrainerWorker(QObject):
                 epochs=self.epochs,
                 save_path=self.save_path,
                 batch_size=self.batch_size,
-                lr=self.lr
+                lr=self.lr,
+                valid_split=self.valid_split  # <- Nuevo
             )
             self.finished.emit(path)
         except Exception as e:
             logging.getLogger(__name__).exception("Error en entrenamiento")
             self.error.emit(str(e))
+

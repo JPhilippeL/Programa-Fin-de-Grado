@@ -3,7 +3,7 @@
 import torch
 import torch.nn.functional as F
 from torch_geometric.nn import GINConv, GINEConv, GATConv, global_add_pool, TransformerConv
-
+from sklearn.model_selection import train_test_split
 from ML.data_processing import read_targets, load_data_from_sdf, create_dataloader
 import os
 import logging
@@ -128,24 +128,42 @@ def create_model(model_name, input_dim, edge_dim=1):
 # Función para entrenar modelo
 # ----------------------
 
-def train(model, dataloader, device, epochs=20, lr=0.001):
+def train(model, train_loader, device, epochs=20, lr=0.001, val_loader=None):
     model.to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
     criterion = torch.nn.MSELoss()  # Regresión
 
-    model.train()
+    #model.train()
     for epoch in range(1, epochs + 1):
+        model.train()
         total_loss = 0
-        for batch in dataloader:
+        for batch in train_loader:
             batch = batch.to(device)
             optimizer.zero_grad()
-            # Los modelos reciben (x, edge_index, edge_attr, batch)
             out = model(batch.x, batch.edge_index, batch.edge_attr, batch.batch)
             loss = criterion(out, batch.y)
             loss.backward()
             optimizer.step()
             total_loss += loss.item() * batch.num_graphs
-        logger.info(f"Epoch {epoch:03d} | Loss: {total_loss / len(dataloader.dataset):.6f}")
+        avg_train_loss = total_loss / len(train_loader.dataset)
+
+        avg_val_loss = None
+        if val_loader is not None:
+            model.eval()
+            val_loss = 0
+            with torch.no_grad():
+                for batch in val_loader:
+                    batch = batch.to(device)
+                    out = model(batch.x, batch.edge_index, batch.edge_attr, batch.batch)
+                    loss = criterion(out, batch.y)
+                    val_loss += loss.item() * batch.num_graphs
+            avg_val_loss = val_loss / len(val_loader.dataset)
+
+        if avg_val_loss is not None:
+            logger.info(f"Epoch {epoch:03d} | Train Loss: {avg_train_loss:.6f} | Val Loss: {avg_val_loss:.6f}")
+        else:
+            logger.info(f"Epoch {epoch:03d} | Train Loss: {avg_train_loss:.6f}")
+
 
 
 def train_and_save_model(
@@ -155,12 +173,16 @@ def train_and_save_model(
     epochs,
     save_path,
     batch_size=32,
-    lr=0.001
+    lr=0.001,
+    valid_split=0.2
 ):
     target_dict = read_targets(target_file)
     targetname = os.path.splitext(os.path.basename(target_file))[0]
     data_list = load_data_from_sdf(sdf_dir, target_dict)
-    dataloader = create_dataloader(data_list, batch_size=batch_size)
+
+    train_data, val_data = train_test_split(data_list, test_size=valid_split, random_state=42)
+    train_loader = create_dataloader(train_data, batch_size=batch_size)
+    val_loader = create_dataloader(val_data, batch_size=batch_size)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -169,7 +191,7 @@ def train_and_save_model(
     
     model = create_model(modelo_nombre, input_dim, edge_dim)
 
-    train(model, dataloader, device, epochs=epochs, lr=lr)
+    train(model, train_loader, device, epochs=epochs, lr=lr, val_loader=val_loader)
 
     checkpoint = {
         'model_state_dict': model.state_dict(),

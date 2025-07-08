@@ -20,7 +20,6 @@ class MainWindow(QMainWindow):
 
         # Contenedor central permanente
         self.central_widget = QWidget()
-        #self.central_layout = QVBoxLayout(self.central_widget)
         self.setCentralWidget(self.central_widget)
 
         self.menu_bar = MenuBar(self)
