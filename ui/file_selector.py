@@ -37,8 +37,5 @@ class FileSelector(QWidget):
         )
         if file_path:
             self.selected_file = file_path
-            self.label.setText(f"Archivo seleccionado:\n{file_path}")
             self.archivo_seleccionado.emit(file_path)  # Emitir la señal
-        else:
-            QMessageBox.warning(self, "Archivo no seleccionado", "Debe seleccionar un archivo para continuar.")
 

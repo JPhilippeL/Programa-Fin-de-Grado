@@ -110,7 +110,6 @@ class MenuBar(QMenuBar):
             logger.info(mensaje)
         except Exception as e:
             mensaje = f"Se detectaron errores químicos en la molécula:\n{str(e)}"
-            #QMessageBox.critical(self.parent, "Error de Verificación", mensaje)
             logger.error(mensaje)
 
     def entrenar_ia(self):
