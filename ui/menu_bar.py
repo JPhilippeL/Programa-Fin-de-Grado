@@ -5,6 +5,8 @@ from ML.model_tester import cargar_y_predecir
 import os
 from rdkit import Chem
 from ui.forms.train_config_dialog import TrainConfigDialog
+from ui.forms.model_test_dialog import ModelTestDialog
+import torch
 import logging
 logger = logging.getLogger(__name__)
 
@@ -48,6 +50,11 @@ class MenuBar(QMenuBar):
         testeo_action = QAction("Testear IA", self)
         testeo_action.triggered.connect(self.testear_modelo)
         ia_menu.addAction(testeo_action)
+
+        # Consultar parámetros modelo
+        consultar_params_action = QAction("Consultar modelo", self)
+        consultar_params_action.triggered.connect(self.consultar_parametros_modelo)
+        ia_menu.addAction(consultar_params_action)
 
     def nuevo_archivo(self):
         self.parent.create_new_graph()
@@ -107,31 +114,31 @@ class MenuBar(QMenuBar):
             logger.error(mensaje)
 
     def entrenar_ia(self):
-        sdf_dir = QFileDialog.getExistingDirectory(self.parent, "Seleccionar carpeta con archivos SDF")
-        if not sdf_dir:
-            return
-
-        target_file, _ = QFileDialog.getOpenFileName(
-            self.parent, "Seleccionar archivo de propiedades", "", "Archivo de texto (*.txt)"
-        )
-        if not target_file:
-            return
-
-        # Mostrar formulario
         dialog = TrainConfigDialog(self)
         if dialog.exec_() != QDialog.Accepted:
             return
 
         config = dialog.get_values()
+
+        # Validaciones básicas
+        if not config["sdf_dir"] or not os.path.isdir(config["sdf_dir"]):
+            QMessageBox.warning(self.parent, "Error", "Debes seleccionar un directorio válido con archivos SDF.")
+            return
+
+        if not config["target_file"] or not os.path.isfile(config["target_file"]):
+            QMessageBox.warning(self.parent, "Error", "Debes seleccionar un archivo .txt válido con los targets.")
+            return
+
         if not config["save_name"]:
             QMessageBox.warning(self.parent, "Nombre inválido", "El nombre del archivo no puede estar vacío.")
             return
 
         save_path = f"modelos/{config['save_name']}.pt"
 
+        # Ejecutar entrenamiento
         self.parent.training_controller.entrenar(
-            sdf_dir=sdf_dir,
-            target_file=target_file,
+            sdf_dir=config["sdf_dir"],
+            target_file=config["target_file"],
             modelo=config["modelo"],
             epochs=config["epochs"],
             batch_size=config["batch_size"],
@@ -143,28 +150,50 @@ class MenuBar(QMenuBar):
         )
 
     def testear_modelo(self):
-        model_path, _ = QFileDialog.getOpenFileName(self.parent, "Seleccionar archivo de modelo (.pt)", "", "Modelos (*.pt)")
-        if not model_path:
-            return
+        dialog = ModelTestDialog(self.parent)
+        if dialog.exec():
+            model_path, sdf_path = dialog.get_paths()
+            try:
+                pred, target_name = cargar_y_predecir(model_path, sdf_path)
 
-        sdf_path, _ = QFileDialog.getOpenFileName(self.parent, "Seleccionar archivo SDF para predecir", "", "Archivos SDF (*.sdf)")
-        if not sdf_path:
+                model_name = os.path.basename(model_path)
+                sdf_name = os.path.basename(sdf_path)
+                msg = f"Predicción de '{target_name}' con el modelo '{model_name}' en la molécula '{sdf_name}': {pred:.4f}"
+                logger.info(msg)
+
+            except Exception as e:
+                QMessageBox.critical(self.parent, "Error en predicción", f"No se pudo realizar la predicción:\n\n{str(e)}")
+                logger.error(f"Error en testear modelo: {str(e)}")
+
+    def consultar_parametros_modelo(self):
+        file_path, _ = QFileDialog.getOpenFileName(
+            self.parent,
+            "Seleccionar archivo de modelo (.pt)",
+            "",
+            "Modelos (*.pt)"
+        )
+        if not file_path:
             return
 
         try:
-            pred, target_name = cargar_y_predecir(model_path, sdf_path)
+            checkpoint = torch.load(file_path, map_location='cpu')
+            info = (
+                f"Modelo: {checkpoint.get('model_type', 'Desconocido')}\n"
+                f"\t\tÉpocas entrenadas: {checkpoint.get('epochs_trained', 'Desconocido')}\n"
+                f"\t\tTarget: {checkpoint.get('target_name', 'Desconocido')}\n"
+                f"\t\tHidden dim: {checkpoint.get('hidden_dim', 'Desconocido')}\n"
+                f"\t\tNúmero de capas: {checkpoint.get('num_layers', 'Desconocido')}\n"
+                f"\t\tBatch size: {checkpoint.get('batch_size', 'Desconocido')}\n"
+                f"\t\tLearning rate: {checkpoint.get('learning_rate', 'Desconocido')}\n"
+                f"\t\tValid split: {checkpoint.get('valid_split', 'Desconocido')}"
+            )
 
-            model_name = os.path.basename(model_path)
-            sdf_name = os.path.basename(sdf_path)
-
-            msg = f"Predicción de '{target_name}' con el modelo '{model_name}' en la molécula '{sdf_name}': {pred:.4f}"
-            QMessageBox.information(self.parent, "Predicción", msg)
-            logger.info(msg)
-
+            logger.info(info)
 
         except Exception as e:
-            QMessageBox.critical(self.parent, "Error en predicción", f"No se pudo realizar la predicción:\n\n{str(e)}")
-            logger.error(f"Error en testear modelo: {str(e)}")
+            logger.error(f"Error al consultar parámetros del modelo: {str(e)}")
+
+
 
 
 
