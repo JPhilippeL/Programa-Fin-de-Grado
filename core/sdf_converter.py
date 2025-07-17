@@ -12,6 +12,7 @@ def parse_sdf(file_path):
     if mol is None:
         raise ValueError("No se pudo leer una molécula válida desde el archivo SDF.")
 
+    mol = Chem.AddHs(mol, addCoords=True)
     AllChem.Compute2DCoords(mol)
     graph = nx.Graph()
 
