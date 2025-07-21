@@ -53,13 +53,9 @@ class TrainingController:
         self.thread.start()
 
     def on_finished(self, ruta):
-        from PySide6.QtWidgets import QMessageBox
-        QMessageBox.information(self.parent, "Entrenamiento completo", f"Modelo guardado en: {ruta}")
         self.parent.log(f"Entrenamiento completo. Modelo en: {ruta}")
 
     def on_error(self, msg):
-        from PySide6.QtWidgets import QMessageBox
-        QMessageBox.critical(self.parent, "Error de entrenamiento", msg)
         self.parent.log(f"Error en entrenamiento: {msg}")
 
 class TrainerWorker(QObject):
