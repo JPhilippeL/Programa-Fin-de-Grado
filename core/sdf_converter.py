@@ -6,13 +6,12 @@ from rdkit.Chem import AllChem
 import networkx as nx
 
 def parse_sdf(file_path):
-    suppl = Chem.SDMolSupplier(file_path)
+    suppl = Chem.SDMolSupplier(file_path, removeHs=False)
     mol = next((m for m in suppl if m is not None), None)
 
     if mol is None:
         raise ValueError("No se pudo leer una molécula válida desde el archivo SDF.")
-
-    mol = Chem.AddHs(mol, addCoords=True)
+    
     AllChem.Compute2DCoords(mol)
     graph = nx.Graph()
 

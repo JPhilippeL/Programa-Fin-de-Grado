@@ -114,14 +114,16 @@ class MoleculeGraphScene(QGraphicsScene):
                     clicked_item = clicked_item.parentItem()
 
                 if isinstance(clicked_item, NodeItem) and clicked_item != self.edge_source_node:
-                    GraphManager.add_edge(
-                        self.graph,
-                        self._get_node_id_from_item(self.edge_source_node),
-                        self._get_node_id_from_item(clicked_item),
-                        bond_type="SINGLE"
-                    )
-                    newedge = EdgeItem(self.edge_source_node, clicked_item, "SINGLE")
-                    self.add_edge(newedge)
+                    source_id = self._get_node_id_from_item(self.edge_source_node)
+                    target_id = self._get_node_id_from_item(clicked_item)
+
+                    # Verificar si ya hay un enlace entre los nodos
+                    if self.graph.has_edge(source_id, target_id) or self.graph.has_edge(target_id, source_id):
+                        QMessageBox.information(None, "Enlace ya existe", f"Ya hay un enlace entre {source_id} y {target_id}.")
+                    else:
+                        GraphManager.add_edge(self.graph, source_id, target_id, bond_type="SINGLE")
+                        new_edge = EdgeItem(self.edge_source_node, clicked_item, "SINGLE")
+                        self.add_edge(new_edge)
                     self.cancel_temporary_edge()
                     return
                 
