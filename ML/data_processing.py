@@ -79,6 +79,10 @@ def load_data_from_sdf(sdf_dir, target_dict):
             data = mol_to_graph_data_obj(mol)
             data.y = torch.tensor([affinity], dtype=torch.float)
             data_list.append(data)
+    
+    if not data_list:
+        raise ValueError("No se pudo cargar ninguna molécula válida.")
+
     return data_list
 
 
