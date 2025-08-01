@@ -6,8 +6,8 @@ import sys
 
 app = QApplication(sys.argv)
 app.setStyle("Fusion")
-app.setApplicationName("Editor Molecular")
-app.setWindowIcon(QIcon("assets/icono.png"))
+app.setApplicationName("Sistema de Análisis Molecular")
+app.setWindowIcon(QIcon("assets/icono2.png"))
 window = MainWindow()
 window.show()
 sys.exit(app.exec())

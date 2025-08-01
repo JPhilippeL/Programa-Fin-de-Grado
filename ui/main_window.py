@@ -4,6 +4,7 @@ from PySide6.QtGui import QIcon
 from ui.graph.graph_view import MoleculeGraphView
 from core.sdf_converter import parse_sdf
 from ui.file_selector import FileSelector
+from ui.welcome_screen import WelcomeScreen
 from ui.menu_bar import MenuBar
 from PySide6.QtWidgets import QTextEdit
 from PySide6.QtGui import QTextCursor
@@ -15,7 +16,7 @@ from ML.training_controller import TrainingController
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Editor Molecular")
+        self.setWindowTitle("Sistema de Análisis Molecular")
         self.resize(900, 600)
 
         # Contenedor central permanente
@@ -35,11 +36,12 @@ class MainWindow(QMainWindow):
 
 
         # Inicialmente, mostramos el selector de archivo
-        self.file_selector = FileSelector()
-        self.splitter.addWidget(self.file_selector)
+        #self.file_selector = FileSelector()
+        #self.splitter.addWidget(self.file_selector)
+        self.splitter.addWidget(WelcomeScreen())
 
         # Conexión del botón "Abrir archivo"
-        self.file_selector.archivo_seleccionado.connect(self.load_graph_from_file)
+        #self.file_selector.archivo_seleccionado.connect(self.load_graph_from_file)
 
         # Luego reemplazarlo
         self.graph_view = None
