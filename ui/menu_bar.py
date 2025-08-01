@@ -37,7 +37,7 @@ class MenuBar(QMenuBar):
         # Menu de Verificación
         verificacion_menu = self.addMenu("Verificación")
 
-        verificar_action = QAction("Verificar", self)
+        verificar_action = QAction("Verificar Molécula", self)
         verificar_action.triggered.connect(self.verificar_molecula)
         verificacion_menu.addAction(verificar_action)
 
