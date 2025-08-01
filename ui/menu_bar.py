@@ -4,14 +4,14 @@ from core.sdf_converter import graph_to_mol, save_graph_as_sdf
 from ML.model_tester import cargar_y_predecir
 import os
 from rdkit import Chem
-from ui.forms.train_config_dialog import TrainConfigDialog
-from ui.forms.model_test_dialog import ModelTestDialog
-from ui.forms.batch_model_test_dialog import BatchModelTestDialog
+from ui.dialogs.train_config_dialog import TrainConfigDialog
+from ui.dialogs.model_test_dialog import ModelTestDialog
+from ui.dialogs.batch_model_test_dialog import BatchModelTestDialog
 from ML.model_tester import test_model_on_directory
 import traceback
 import torch
 import logging
-from ui.scatter_plot_viewer import ScatterPlotViewer
+from ui.dialogs.image_dialog import ImageDialog
 logger = logging.getLogger(__name__)
 
 class MenuBar(QMenuBar):
@@ -182,23 +182,16 @@ class MenuBar(QMenuBar):
             try:
                 # Definir nombre del archivo de salida de predicciones
                 model_name = os.path.splitext(os.path.basename(model_path))[0]
-                output_predictions_path = f"predicciones_{model_name}.txt"
 
                 # Ejecutar función de testeo
                 test_model_on_directory(model_path, sdf_dir, targets_file)
 
-                # Mostrar mensaje de éxito
-                msg = (
-                    f"Evaluación finalizada.\n\n"
-                    f"Modelo: {os.path.basename(model_path)}\n"
-                    f"Predicciones guardadas en: {output_predictions_path}\n"
-                    f"Scatter plot: scatter_plot_{model_name}.png"
-                )
+                # Mostrar scatter plot
+                plot_path = os.path.join("Resultados", f"scatter_plot_{model_name}.png")
+                self.image_dialog = ImageDialog(plot_path, self.parent)
+                self.image_dialog.show()
 
-                # Mostrar ventana con scatter plot
-                #plot_path = os.path.join("Resultados", f"scatter_plot_{model_name}.png")
-                #viewer = ScatterPlotViewer(plot_path, parent=self.parent)
-                #viewer.exec()
+
 
             except Exception as e:
                 logger.error("Error en testeo por lotes:\n" + traceback.format_exc())

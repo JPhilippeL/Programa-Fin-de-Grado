@@ -98,12 +98,16 @@ def test_model_on_directory(checkpoint_path, sdf_dir, targets_file):
         y_true.append(data.y.item())
         filenames.append(data.name if hasattr(data, 'name') else 'unknown')
 
-    # Nombrar archivos según el modelo
+     # Nombre base de archivos
     model_filename = os.path.basename(checkpoint_path)
     model_name_no_ext = os.path.splitext(model_filename)[0]
+    folder_name = os.path.basename(sdf_dir.rstrip(os.sep))
 
     # Archivo de predicciones
-    output_predictions_path = os.path.join(resultados_dir, f"predicciones_{model_name_no_ext}.txt")
+    output_predictions_path = os.path.join(
+        resultados_dir,
+        f"predicciones_{model_name_no_ext}_{folder_name}.txt"
+    )
 
     with open(output_predictions_path, 'w') as f:
         for fname, pred in zip(filenames, y_pred):
@@ -119,13 +123,17 @@ def test_model_on_directory(checkpoint_path, sdf_dir, targets_file):
     plt.plot([min(y_true), max(y_true)], [min(y_true), max(y_true)], color='red', linestyle='--')
     plt.xlabel("Valor real")
     plt.ylabel("Predicción")
-    plt.title(f"Scatter Plot - {model_filename}")
+    plt.title(f"Scatter Plot - {model_name_no_ext} - {folder_name}")
     plt.grid(True)
     plt.tight_layout()
 
-    # Guardar imagen en carpeta Resultados
-    plot_filename = os.path.join(resultados_dir, f"scatter_plot_{model_name_no_ext}.png")
+    # Guardar imagen
+    plot_filename = os.path.join(
+        resultados_dir,
+        f"scatter_plot_{model_name_no_ext}_{folder_name}.png"
+    )
     plt.savefig(plot_filename)
     plt.close()
+
     logger.info(f"Scatter plot guardado en: {plot_filename}")
     logger.info(f"Predicciones guardadas en: {output_predictions_path}")
