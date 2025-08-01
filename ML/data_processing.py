@@ -78,6 +78,8 @@ def load_data_from_sdf(sdf_dir, target_dict):
 
             data = mol_to_graph_data_obj(mol)
             data.y = torch.tensor([affinity], dtype=torch.float)
+            data.name = os.path.splitext(filename)[0]
+
             data_list.append(data)
     
     if not data_list:

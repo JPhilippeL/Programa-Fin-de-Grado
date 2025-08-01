@@ -61,7 +61,7 @@ class GINENet(torch.nn.Module):
             x = conv(x, edge_index, edge_attr)
             x = F.relu(x)
         x = self.readout(x, batch)
-        return self.output(x).squeeze()
+        return self.output(x).view(-1)
 
 
 class GATNet(torch.nn.Module):

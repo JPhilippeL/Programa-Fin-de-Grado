@@ -6,8 +6,12 @@ import os
 from rdkit import Chem
 from ui.forms.train_config_dialog import TrainConfigDialog
 from ui.forms.model_test_dialog import ModelTestDialog
+from ui.forms.batch_model_test_dialog import BatchModelTestDialog
+from ML.model_tester import test_model_on_directory
+import traceback
 import torch
 import logging
+from ui.scatter_plot_viewer import ScatterPlotViewer
 logger = logging.getLogger(__name__)
 
 class MenuBar(QMenuBar):
@@ -45,10 +49,15 @@ class MenuBar(QMenuBar):
         entrenar_action.triggered.connect(self.entrenar_ia)
         ia_menu.addAction(entrenar_action)
 
-        # Testeo de IA
-        testeo_action = QAction("Testear IA", self)
+        # Testeo de IA con un solo SDF
+        testeo_action = QAction("Predecir SDF", self)
         testeo_action.triggered.connect(self.testear_modelo)
         ia_menu.addAction(testeo_action)
+
+        # Testeo de IA con múltiples SDF
+        testeo_batch_action = QAction("Testear IA", self)
+        testeo_batch_action.triggered.connect(self.testear_modelo_en_batch)
+        ia_menu.addAction(testeo_batch_action)
 
         # Consultar parámetros modelo
         consultar_params_action = QAction("Consultar modelo", self)
@@ -163,6 +172,38 @@ class MenuBar(QMenuBar):
             except Exception as e:
                 QMessageBox.critical(self.parent, "Error en predicción", f"No se pudo realizar la predicción:\n\n{str(e)}")
                 logger.error(f"Error en testear modelo: {str(e)}")
+
+    def testear_modelo_en_batch(self):
+
+        dialog = BatchModelTestDialog(self.parent)
+        if dialog.exec():
+            model_path, sdf_dir, targets_file = dialog.get_paths()
+
+            try:
+                # Definir nombre del archivo de salida de predicciones
+                model_name = os.path.splitext(os.path.basename(model_path))[0]
+                output_predictions_path = f"predicciones_{model_name}.txt"
+
+                # Ejecutar función de testeo
+                test_model_on_directory(model_path, sdf_dir, targets_file)
+
+                # Mostrar mensaje de éxito
+                msg = (
+                    f"Evaluación finalizada.\n\n"
+                    f"Modelo: {os.path.basename(model_path)}\n"
+                    f"Predicciones guardadas en: {output_predictions_path}\n"
+                    f"Scatter plot: scatter_plot_{model_name}.png"
+                )
+
+                # Mostrar ventana con scatter plot
+                #plot_path = os.path.join("Resultados", f"scatter_plot_{model_name}.png")
+                #viewer = ScatterPlotViewer(plot_path, parent=self.parent)
+                #viewer.exec()
+
+            except Exception as e:
+                logger.error("Error en testeo por lotes:\n" + traceback.format_exc())
+                QMessageBox.critical(self.parent, "Error en testeo", f"No se pudo ejecutar el testeo:\n\n{str(e)}")
+
 
     def consultar_parametros_modelo(self):
         file_path, _ = QFileDialog.getOpenFileName(

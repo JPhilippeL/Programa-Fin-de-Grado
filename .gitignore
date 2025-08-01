@@ -1,5 +1,6 @@
 modelos/
 data/
+Resultados/
 # Ignorar todas las carpetas __pycache__ y archivos .pyc en el proyecto
 __pycache__/
 **/__pycache__/
