@@ -187,7 +187,8 @@ class MenuBar(QMenuBar):
                 test_model_on_directory(model_path, sdf_dir, targets_file)
 
                 # Mostrar scatter plot
-                plot_path = os.path.join("Resultados", f"scatter_plot_{model_name}.png")
+                folder_name = os.path.basename(sdf_dir.rstrip(os.sep))
+                plot_path = os.path.join("Resultados", f"scatter_plot_{model_name}_{folder_name}.png")
                 self.image_dialog = ImageDialog(plot_path, self.parent)
                 self.image_dialog.show()
 
