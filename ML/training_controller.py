@@ -3,6 +3,7 @@
 from PySide6.QtCore import QObject, Signal, QThread
 import logging
 from ML.model_trainer import train_and_save_model
+import time
 logger = logging.getLogger(__name__)
 
 class TrainingController:
@@ -55,7 +56,7 @@ class TrainingController:
 
     def on_finished(self, ruta):
         #self.parent.log(f"Entrenamiento completo. Modelo en: {ruta}")
-        logger.info(f"Entrenamiento completo. Modelo guardado en: {ruta}")
+        logger.info(f"Modelo guardado en: {ruta}")
 
     def on_error(self, msg):
         #self.parent.log(f"Error en entrenamiento: {msg}")
@@ -98,6 +99,8 @@ class TrainerWorker(QObject):
 
     def run(self):
         try:
+            start_time = time.time()
+
             path = train_and_save_model(
                 sdf_dir=self.sdf_dir,
                 target_file=self.target_file,
@@ -110,6 +113,10 @@ class TrainerWorker(QObject):
                 hidden_dim=self.hidden_dim,
                 num_layers=self.num_layers
             )
+            end_time = time.time()
+            elapsed = end_time - start_time
+            logger.info(f"Entrenamiento completado en {elapsed:.2f} segundos.")
+
             self.finished.emit(path)
         except Exception as e:
             self.error.emit(str(e))
