@@ -55,11 +55,9 @@ class TrainingController:
         self.thread.start()
 
     def on_finished(self, ruta):
-        #self.parent.log(f"Entrenamiento completo. Modelo en: {ruta}")
         logger.info(f"Modelo guardado en: {ruta}")
 
     def on_error(self, msg):
-        #self.parent.log(f"Error en entrenamiento: {msg}")
         logger.error(f"Error en entrenamiento: {msg}")
         if self.thread.isRunning():
             self.thread.quit()

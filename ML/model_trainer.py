@@ -159,7 +159,7 @@ def train(model, train_loader, device, epochs=20, lr=0.001, val_loader=None):
             avg_val_loss = val_loss / len(val_loader.dataset)
 
         if avg_val_loss is not None:
-            logger.info(f"Epoch {epoch:03d} | Train Loss: {avg_train_loss:.6f} | Val Loss: {avg_val_loss:.6f}")
+            logger.info(f"Epoch {epoch:03d} | Train MSE: {avg_train_loss:.6f} | Validation MSE: {avg_val_loss:.6f}")
         else:
             logger.info(f"Epoch {epoch:03d} | Train Loss: {avg_train_loss:.6f}")
 
