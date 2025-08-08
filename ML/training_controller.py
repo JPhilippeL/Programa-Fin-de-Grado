@@ -23,7 +23,8 @@ class TrainingController:
     valid_split,
     save_path,
     hidden_dim=64,   
-    num_layers=3       
+    num_layers=3,
+    patience=0       
     ):
         self.thread = QThread()
         self.worker = TrainerWorker(
@@ -36,7 +37,8 @@ class TrainingController:
             lr=lr,
             valid_split=valid_split,
             hidden_dim=hidden_dim,     
-            num_layers=num_layers      
+            num_layers=num_layers,
+            patience=patience      
         )
 
         self.worker.moveToThread(self.thread)
@@ -80,7 +82,8 @@ class TrainerWorker(QObject):
         lr=0.001,
         valid_split=0.2,
         hidden_dim=64,
-        num_layers=3
+        num_layers=3,
+        patience=0
     ):
         super().__init__()
         self.sdf_dir = sdf_dir
@@ -93,6 +96,7 @@ class TrainerWorker(QObject):
         self.valid_split = valid_split
         self.hidden_dim = hidden_dim
         self.num_layers = num_layers
+        self.patience = patience
 
 
     def run(self):
@@ -109,7 +113,8 @@ class TrainerWorker(QObject):
                 lr=self.lr,
                 valid_split=self.valid_split,
                 hidden_dim=self.hidden_dim,
-                num_layers=self.num_layers
+                num_layers=self.num_layers,
+                patience=self.patience
             )
             end_time = time.time()
             elapsed = end_time - start_time

@@ -137,3 +137,23 @@ def test_model_on_directory(checkpoint_path, sdf_dir, targets_file):
 
     logger.info(f"Scatter plot guardado en: {plot_filename}")
     logger.info(f"Predicciones guardadas en: {output_predictions_path}")
+
+def obtener_info_checkpoint(model_path):
+    try:
+        checkpoint = torch.load(model_path, map_location='cpu')
+        info = (
+            f"Modelo: {checkpoint.get('model_type', 'Desconocido')}\n"
+            f"\t\tÉpocas entrenadas: {checkpoint.get('epochs_trained', 'Desconocido')}\n"
+            f"\t\tTarget: {checkpoint.get('target_name', 'Desconocido')}\n"
+            f"\t\tHidden dim: {checkpoint.get('hidden_dim', 'Desconocido')}\n"
+            f"\t\tNúmero de capas: {checkpoint.get('num_layers', 'Desconocido')}\n"
+            f"\t\tBatch size: {checkpoint.get('batch_size', 'Desconocido')}\n"
+            f"\t\tLearning rate: {checkpoint.get('learning_rate', 'Desconocido')}\n"
+            f"\t\tValid split: {checkpoint.get('valid_split', 'Desconocido')}\n"
+            f"\t\tEarly stopping paciencia: {checkpoint.get('early_stopping_patience', 'No especificada')}"
+        )
+        return info
+    except Exception as e:
+        error_msg = f"Error al consultar parámetros del modelo: {str(e)}"
+        logger.error(error_msg)
+        return error_msg

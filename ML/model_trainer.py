@@ -128,10 +128,15 @@ def create_model(model_name, input_dim, edge_dim=1, hidden_dim=64, num_layers=3)
 # Función para entrenar modelo
 # ----------------------
 
-def train(model, train_loader, device, epochs=20, lr=0.001, val_loader=None):
+def train(model, train_loader, device, epochs=20, lr=0.001, val_loader=None, patience=0):
     model.to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
     criterion = torch.nn.MSELoss()
+
+    best_val_loss = float("inf")
+    patience_counter = 0
+    best_model_state = None
+    best_epoch = epochs
 
     for epoch in range(1, epochs + 1):
         model.train()
@@ -158,10 +163,30 @@ def train(model, train_loader, device, epochs=20, lr=0.001, val_loader=None):
                     val_loss += loss.item() * batch.num_graphs
             avg_val_loss = val_loss / len(val_loader.dataset)
 
+            # Guardar el mejor modelo si la validación mejora
+            if avg_val_loss < best_val_loss:
+                best_val_loss = avg_val_loss
+                patience_counter = 0
+                best_model_state = model.state_dict()
+                best_epoch = epoch
+            else:
+                if patience > 0:
+                    # Early stopping
+                    patience_counter += 1
+                    if patience_counter >= patience:
+                        logger.info(f"Early stopping en epoch {epoch}")
+                        break
+
         if avg_val_loss is not None:
             logger.info(f"Epoch {epoch:03d} | Train MSE: {avg_train_loss:.4f} | Validation MSE: {avg_val_loss:.4f}")
         else:
-            logger.info(f"Epoch {epoch:03d} | Train Loss: {avg_train_loss:.6f}")
+            logger.info(f"Epoch {epoch:03d} | Train Loss: {avg_train_loss:.4f}")
+
+    # Restaurar siempre el mejor modelo antes de salir
+    if best_model_state is not None:
+        model.load_state_dict(best_model_state)
+        logger.info(f"Mejor modelo guardado en epoch {best_epoch} con validación MSE: {best_val_loss:.4f}")
+
 
 
 
@@ -175,7 +200,8 @@ def train_and_save_model(
     lr=0.001,
     valid_split=0.2,
     hidden_dim=64,
-    num_layers=3
+    num_layers=3,
+    patience=0
 ):
     target_dict = read_targets(target_file)
     targetname = os.path.splitext(os.path.basename(target_file))[0]
@@ -192,7 +218,7 @@ def train_and_save_model(
     
     model = create_model(modelo_nombre, input_dim, edge_dim, hidden_dim=hidden_dim, num_layers=num_layers)
 
-    train(model, train_loader, device, epochs=epochs, lr=lr, val_loader=val_loader)
+    train(model, train_loader, device, epochs=epochs, lr=lr, val_loader=val_loader, patience=patience)
 
     checkpoint = {
         'model_state_dict': model.state_dict(),
@@ -206,6 +232,7 @@ def train_and_save_model(
         'batch_size': batch_size,
         'learning_rate': lr,
         'valid_split': valid_split,
+        'early_stopping_patience': patience,
     }
 
 

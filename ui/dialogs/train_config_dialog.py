@@ -41,20 +41,24 @@ class TrainConfigDialog(QDialog):
         self.model_select = QComboBox()
         self.model_select.addItems(["GIN", "GINE", "GAT", "GraphTransformer"])
         self.epochs_input = QSpinBox(); self.epochs_input.setRange(1, 10000); self.epochs_input.setValue(20)
+        self.valid_split_input = QDoubleSpinBox(); self.valid_split_input.setDecimals(2)
+        self.valid_split_input.setRange(0.0, 0.5); self.valid_split_input.setSingleStep(0.05); self.valid_split_input.setValue(0.2)
+        self.early_stopping_patience_input = QSpinBox()
+        self.early_stopping_patience_input.setRange(0, 100)
+        self.early_stopping_patience_input.setValue(0)
         self.batch_input = QSpinBox(); self.batch_input.setRange(1, 1024); self.batch_input.setValue(32)
         self.lr_input = QDoubleSpinBox(); self.lr_input.setDecimals(5); self.lr_input.setRange(0.00001, 1.0)
         self.lr_input.setSingleStep(0.0001); self.lr_input.setValue(0.001)
-        self.valid_split_input = QDoubleSpinBox(); self.valid_split_input.setDecimals(2)
-        self.valid_split_input.setRange(0.0, 0.5); self.valid_split_input.setSingleStep(0.05); self.valid_split_input.setValue(0.2)
         self.hidden_dim_input = QSpinBox(); self.hidden_dim_input.setRange(8, 1024); self.hidden_dim_input.setValue(64)
         self.num_layers_input = QSpinBox(); self.num_layers_input.setRange(1, 10); self.num_layers_input.setValue(3)
         self.save_name_input = QLineEdit()
 
         form_layout.addRow("Modelo:", self.model_select)
         form_layout.addRow("Épocas:", self.epochs_input)
+        form_layout.addRow("Porcentaje validación:", self.valid_split_input)
+        form_layout.addRow("Paciencia Early Stopping (0 desactiva):", self.early_stopping_patience_input)
         form_layout.addRow("Batch size:", self.batch_input)
         form_layout.addRow("Learning rate:", self.lr_input)
-        form_layout.addRow("Porcentaje validación:", self.valid_split_input)
         form_layout.addRow("Hidden dim:", self.hidden_dim_input)
         form_layout.addRow("Número de capas:", self.num_layers_input)
         form_layout.addRow("Nombre del modelo:", self.save_name_input)
@@ -97,4 +101,5 @@ class TrainConfigDialog(QDialog):
             "save_name": self.save_name_input.text(),
             "hidden_dim": self.hidden_dim_input.value(),
             "num_layers": self.num_layers_input.value(),
+            "early_stopping_patience": self.early_stopping_patience_input.value()
         }

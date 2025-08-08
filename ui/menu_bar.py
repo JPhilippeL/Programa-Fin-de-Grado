@@ -8,6 +8,7 @@ from ui.dialogs.train_config_dialog import TrainConfigDialog
 from ui.dialogs.model_test_dialog import ModelTestDialog
 from ui.dialogs.batch_model_test_dialog import BatchModelTestDialog
 from ML.model_tester import test_model_on_directory
+from ML.model_tester import obtener_info_checkpoint
 import traceback
 import torch
 import logging
@@ -140,6 +141,15 @@ class MenuBar(QMenuBar):
         if not config["save_name"]:
             QMessageBox.warning(self.parent, "Nombre inválido", "El nombre del archivo no puede estar vacío.")
             return
+        
+        # Validar early stopping y validación
+        if config["early_stopping_patience"] > 0 and config["valid_split"] <= 0:
+            QMessageBox.warning(
+                self.parent,
+                "Configuración inválida",
+                "Para usar Early Stopping, el porcentaje de validación debe ser mayor que 0."
+            )
+            return
 
         save_path = f"modelos/{config['save_name']}.pt"
 
@@ -154,7 +164,8 @@ class MenuBar(QMenuBar):
             valid_split=config["valid_split"],
             save_path=save_path,
             hidden_dim=config["hidden_dim"],
-            num_layers=config["num_layers"]
+            num_layers=config["num_layers"],
+            patience=config["early_stopping_patience"]
         )
 
     def testear_modelo(self):
@@ -209,23 +220,8 @@ class MenuBar(QMenuBar):
         if not file_path:
             return
 
-        try:
-            checkpoint = torch.load(file_path, map_location='cpu')
-            info = (
-                f"Modelo: {checkpoint.get('model_type', 'Desconocido')}\n"
-                f"\t\tÉpocas entrenadas: {checkpoint.get('epochs_trained', 'Desconocido')}\n"
-                f"\t\tTarget: {checkpoint.get('target_name', 'Desconocido')}\n"
-                f"\t\tHidden dim: {checkpoint.get('hidden_dim', 'Desconocido')}\n"
-                f"\t\tNúmero de capas: {checkpoint.get('num_layers', 'Desconocido')}\n"
-                f"\t\tBatch size: {checkpoint.get('batch_size', 'Desconocido')}\n"
-                f"\t\tLearning rate: {checkpoint.get('learning_rate', 'Desconocido')}\n"
-                f"\t\tValid split: {checkpoint.get('valid_split', 'Desconocido')}"
-            )
-
-            logger.info(info)
-
-        except Exception as e:
-            logger.error(f"Error al consultar parámetros del modelo: {str(e)}")
+        info = obtener_info_checkpoint(file_path)
+        logger.info(info)
 
 
 
