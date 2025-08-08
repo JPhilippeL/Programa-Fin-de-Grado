@@ -7,6 +7,7 @@ from sklearn.model_selection import train_test_split
 from ML.data_processing import read_targets, load_data_from_sdf, create_dataloader
 import os
 import logging
+import gc
 logger = logging.getLogger(__name__)
 
 
@@ -137,6 +138,7 @@ def train(model, train_loader, device, epochs=20, lr=0.001, val_loader=None, pat
     patience_counter = 0
     best_model_state = None
     best_epoch = epochs
+    avg_train_loss_saved = None
 
     for epoch in range(1, epochs + 1):
         model.train()
@@ -167,8 +169,9 @@ def train(model, train_loader, device, epochs=20, lr=0.001, val_loader=None, pat
             if avg_val_loss < best_val_loss:
                 best_val_loss = avg_val_loss
                 patience_counter = 0
-                best_model_state = model.state_dict()
+                torch.save(model.state_dict(), "best_model_tmp.pt")
                 best_epoch = epoch
+                avg_train_loss_saved = avg_train_loss
             else:
                 if patience > 0:
                     # Early stopping
@@ -177,15 +180,17 @@ def train(model, train_loader, device, epochs=20, lr=0.001, val_loader=None, pat
                         logger.info(f"Early stopping en epoch {epoch}")
                         break
 
+        del batch
         if avg_val_loss is not None:
             logger.info(f"Epoch {epoch:03d} | Train MSE: {avg_train_loss:.4f} | Validation MSE: {avg_val_loss:.4f}")
         else:
             logger.info(f"Epoch {epoch:03d} | Train Loss: {avg_train_loss:.4f}")
 
     # Restaurar siempre el mejor modelo antes de salir
-    if best_model_state is not None:
-        model.load_state_dict(best_model_state)
-        logger.info(f"Mejor modelo guardado en epoch {best_epoch} con validación MSE: {best_val_loss:.4f}")
+    if os.path.exists("best_model_tmp.pt"):
+        model.load_state_dict(torch.load("best_model_tmp.pt"))
+        os.remove("best_model_tmp.pt")
+        logger.info(f"Mejor modelo guardado en epoch {best_epoch} | Train MSE: {avg_train_loss_saved:.4f} | Validation MSE: {best_val_loss:.4f}")
 
 
 
@@ -238,6 +243,12 @@ def train_and_save_model(
 
     os.makedirs(os.path.dirname(save_path), exist_ok=True)
     torch.save(checkpoint, save_path)
+
+    del model
+    del train_loader
+    del val_loader
+    torch.cuda.empty_cache()
+    gc.collect()
 
     return save_path
 

@@ -4,6 +4,8 @@ from PySide6.QtCore import QObject, Signal, QThread
 import logging
 from ML.model_trainer import train_and_save_model
 import time
+import torch
+import gc
 logger = logging.getLogger(__name__)
 
 class TrainingController:
@@ -123,4 +125,7 @@ class TrainerWorker(QObject):
             self.finished.emit(path)
         except Exception as e:
             self.error.emit(str(e))
+        finally:
+            torch.cuda.empty_cache()
+            gc.collect()
 
