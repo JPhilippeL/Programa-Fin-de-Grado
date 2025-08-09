@@ -2,7 +2,6 @@ from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QFormLayout, QLineEdit, QComboBox, QSpinBox,
     QDoubleSpinBox, QDialogButtonBox, QPushButton, QFileDialog, QWidget, QHBoxLayout
 )
-import os
 
 class TrainConfigDialog(QDialog):
     session_defaults = {

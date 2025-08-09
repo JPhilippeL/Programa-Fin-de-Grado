@@ -6,7 +6,6 @@ from torch_geometric.data import Data
 from ML.model_trainer import create_model
 from ML.data_processing import mol_to_graph_data_obj
 import os
-import glob
 import matplotlib.pyplot as plt
 from sklearn.metrics import mean_squared_error
 from math import sqrt
