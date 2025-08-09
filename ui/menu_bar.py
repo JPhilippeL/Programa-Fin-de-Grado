@@ -203,11 +203,8 @@ class MenuBar(QMenuBar):
                 self.image_dialog = ImageDialog(plot_path, self.parent)
                 self.image_dialog.show()
 
-
-
             except Exception as e:
-                logger.error("Error en testeo por lotes:\n" + traceback.format_exc())
-                QMessageBox.critical(self.parent, "Error en testeo", f"No se pudo ejecutar el testeo:\n\n{str(e)}")
+                logger.error("Error en testeo por lotes: " + str(e))
 
 
     def consultar_parametros_modelo(self):
