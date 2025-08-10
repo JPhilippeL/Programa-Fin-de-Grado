@@ -52,8 +52,8 @@ def read_targets(targets_file):
             if len(parts) < 2:
                 continue
             mol_id = parts[0]
-            affinity = float(parts[1])
-            target_dict[mol_id] = affinity
+            target = float(parts[1])
+            target_dict[mol_id] = target
     return target_dict
 
 
@@ -63,7 +63,11 @@ def load_data_from_sdf(sdf_dir, target_dict):
     data_list = []
     for filename in sorted(os.listdir(sdf_dir)):
         if filename.endswith('.sdf'):
-            mol_id = filename.split('_')[0]
+            
+            mol_id = os.path.splitext(filename)[0]
+            if '_' in mol_id:
+                mol_id = mol_id.split('_')[0]
+
             if mol_id not in target_dict:
                 print(f"Warning: No se encontró target para la molécula '{mol_id}', se omite.")
                 continue

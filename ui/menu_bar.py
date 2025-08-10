@@ -98,7 +98,7 @@ class MenuBar(QMenuBar):
             save_graph_as_sdf(graph, file_path)
             mensaje = f"Archivo guardado correctamente en: {file_path}"
             logger.info(mensaje)
-            self.parent.load_graph_from_file(file_path)  # Recargar el grafo guardado
+            # self.parent.load_graph_from_file(file_path)  # Recargar el grafo guardado
         except Exception as e:
             QMessageBox.critical(
                 self.parent,

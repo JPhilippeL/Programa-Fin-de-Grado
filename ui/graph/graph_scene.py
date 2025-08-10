@@ -67,13 +67,11 @@ class MoleculeGraphScene(QGraphicsScene):
 
     def on_delete_node(self, node_item):
         node_id = self._get_node_id_from_item(node_item)
-        confirm = QMessageBox.question(None, "Confirmar", "¿Eliminar este nodo?")
-        if confirm == QMessageBox.Yes:
-            GraphManager.delete_node(self.graph, node_id)
-            for edge in node_item.edges[:]:
-                self.removeItem(edge)
-            self.removeItem(node_item)
-            del self.node_items[node_id]
+        GraphManager.delete_node(self.graph, node_id)
+        for edge in node_item.edges[:]:
+            self.removeItem(edge)
+        self.removeItem(node_item)
+        del self.node_items[node_id]
 
     def _get_node_id_from_item(self, item):
         for node_id, node_item in self.node_items.items():
@@ -157,12 +155,10 @@ class MoleculeGraphScene(QGraphicsScene):
     def on_delete_edge(self, edge_item):
         source_id = self._get_node_id_from_item(edge_item.source)
         target_id = self._get_node_id_from_item(edge_item.target)
-        confirm = QMessageBox.question(None, "Confirmar", "¿Eliminar este enlace?")
-        if confirm == QMessageBox.Yes:
-            GraphManager.delete_edge(self.graph, source_id, target_id)
-            self.removeItem(edge_item)
-            edge_item.source.edges.remove(edge_item)
-            edge_item.target.edges.remove(edge_item)
+        GraphManager.delete_edge(self.graph, source_id, target_id)
+        self.removeItem(edge_item)
+        edge_item.source.edges.remove(edge_item)
+        edge_item.target.edges.remove(edge_item)
 
     # Método para añadir un nodo en medio de una arista existente
     def on_add_node_to_edge(self, edge_item):
