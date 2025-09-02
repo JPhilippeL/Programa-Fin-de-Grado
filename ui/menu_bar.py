@@ -219,9 +219,3 @@ class MenuBar(QMenuBar):
 
         info = obtener_info_checkpoint(file_path)
         logger.info(info)
-
-
-
-
-
-

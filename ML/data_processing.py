@@ -14,11 +14,13 @@ def mol_to_graph_data_obj(mol):
     }
     #Convierte una molécula RDKit a un objeto Data de PyTorch Geometric.
     
+    # Elementos de los átomos
     atom_features = []
     for atom in mol.GetAtoms():
         atom_features.append([atom.GetAtomicNum()])
     x = torch.tensor(atom_features, dtype=torch.float)
 
+    # Indices y atributos de los enlaces
     edge_index = []
     edge_attr = []
     for bond in mol.GetBonds():
@@ -37,7 +39,17 @@ def mol_to_graph_data_obj(mol):
     edge_index = torch.tensor(edge_index, dtype=torch.long).t().contiguous()
     edge_attr = torch.tensor(edge_attr, dtype=torch.float)
 
-    data = Data(x=x, edge_index=edge_index, edge_attr=edge_attr)
+    # Coordenadas 3D
+    conf = mol.GetConformer()
+    pos = []
+    for atom in mol.GetAtoms():
+        idx = atom.GetIdx()
+        p = conf.GetAtomPosition(idx)
+        pos.append([p.x, p.y, p.z])
+    pos = torch.tensor(pos, dtype=torch.float)
+
+    # Construir objeto Data
+    data = Data(x=x, edge_index=edge_index, edge_attr=edge_attr, pos=pos)
     return data
 
 

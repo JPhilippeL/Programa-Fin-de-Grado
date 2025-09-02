@@ -3,7 +3,10 @@
 
 from rdkit import Chem
 from rdkit.Chem import AllChem
+from rdkit.Geometry import Point3D
 import networkx as nx
+
+SCALE = 50
 
 def parse_sdf(file_path):
     suppl = Chem.SDMolSupplier(file_path, removeHs=False)
@@ -12,15 +15,27 @@ def parse_sdf(file_path):
     if mol is None:
         raise ValueError("No se pudo leer una molécula válida desde el archivo SDF.")
     
-    AllChem.Compute2DCoords(mol)
+    # Guardamos los datos de las posiciones 3D originales
+    conf = mol.GetConformer()
+
+    # Copia para calcular 2D
+    mol2d = Chem.Mol(mol)
+    AllChem.Compute2DCoords(mol2d)
+    conf2d = mol2d.GetConformer()
+
     graph = nx.Graph()
 
     for atom in mol.GetAtoms():
         idx = atom.GetIdx()
-        pos = mol.GetConformer().GetAtomPosition(idx)
+        pos3D = conf.GetAtomPosition(idx)  # x,y,z originales
+        pos2D = conf2d.GetAtomPosition(idx)  # x,y 2D generados para un layout mejor
         graph.add_node(str(idx), 
                element=atom.GetSymbol(), 
-               pos=(pos.x * 50, -pos.y * 50))   # Multiplicamos por 50 para escalar las coordenadas
+                # 3D sin escalar para poder reescribir el SDF
+                coords3d = (float(pos3D.x), float(pos3D.y), float(pos3D.z)),
+                # 2D escalado para visualización
+                pos = (float(pos2D.x) * SCALE, float(pos2D.y) * SCALE)
+        )
     for bond in mol.GetBonds():
         start = bond.GetBeginAtomIdx()
         end = bond.GetEndAtomIdx()
@@ -47,7 +62,33 @@ def graph_to_mol(graph):
         mol.AddBond(node_to_idx[u], node_to_idx[v], bond_type)
 
     mol = mol.GetMol()
-    AllChem.Compute2DCoords(mol)
+    Chem.SanitizeMol(mol)
+
+    node_ids = [nid for nid in sorted(graph.nodes, key=int)]
+    conf = Chem.Conformer(mol.GetNumAtoms())
+
+    any_3d = False
+    for i, nid in enumerate(node_ids):
+        if "coords3d" in graph.nodes[nid]:
+            x, y, *z = graph.nodes[nid]["coords3d"]
+            z_val = float(z[0]) if z else 0.0
+            conf.SetAtomPosition(i, Point3D(float(x), float(y), z_val))
+            if len(z) == 1:  # tenía z explícita
+                any_3d = True
+        elif "pos" in graph.nodes[nid]:
+            x, y = graph.nodes[nid]["pos"]
+            conf.SetAtomPosition(i, Point3D(float(x), float(y), 0.0))
+        else:
+            # Sin coords → poner en origen
+            conf.SetAtomPosition(i, Point3D(0.0, 0.0, 0.0))
+
+    try:
+        conf.Set3D(any_3d)
+    except AttributeError:
+        pass
+
+    mol.RemoveAllConformers()
+    mol.AddConformer(conf, assignId=True)
 
     return mol
 
