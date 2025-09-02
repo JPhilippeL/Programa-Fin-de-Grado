@@ -67,6 +67,7 @@ def graph_to_mol(graph):
     node_ids = [nid for nid in sorted(graph.nodes, key=int)]
     conf = Chem.Conformer(mol.GetNumAtoms())
 
+    # Asignar posiciones 3D si existen, sino z = 0
     any_3d = False
     for i, nid in enumerate(node_ids):
         if "coords3d" in graph.nodes[nid]:
@@ -79,7 +80,7 @@ def graph_to_mol(graph):
             x, y = graph.nodes[nid]["pos"]
             conf.SetAtomPosition(i, Point3D(float(x), float(y), 0.0))
         else:
-            # Sin coords → poner en origen
+            # Poner en origen
             conf.SetAtomPosition(i, Point3D(0.0, 0.0, 0.0))
 
     try:
